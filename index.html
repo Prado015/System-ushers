@@ -1,0 +1,2164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#070d1b">
+  <title>Calvary Tabernacle — Ushering System </title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;900&family=Nunito:wght@300;400;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+  <!-- ✅ FIX: Firebase SDK scripts moved to bottom of <body> so DOM is ready before any onerror -->
+  <!-- CSP meta tag below allows gstatic.com and Firebase domains -->
+  <meta http-equiv="Content-Security-Policy" content="
+    default-src 'self' 'unsafe-inline' 'unsafe-eval';
+    script-src 'self' 'unsafe-inline' 'unsafe-eval'
+      https://www.gstatic.com
+      https://*.googleapis.com
+      https://*.firebaseio.com
+      https://cdnjs.cloudflare.com
+      https://fonts.googleapis.com;
+    connect-src 'self'
+      https://*.googleapis.com
+      https://*.firebaseio.com
+      https://*.firestore.googleapis.com
+      https://identitytoolkit.googleapis.com
+      https://securetoken.googleapis.com
+      wss://*.firebaseio.com;
+    style-src 'self' 'unsafe-inline'
+      https://fonts.googleapis.com
+      https://cdnjs.cloudflare.com;
+    font-src 'self'
+      https://fonts.gstatic.com
+      https://cdnjs.cloudflare.com;
+    img-src 'self' data: blob:;
+  ">
+
+<style>
+/* =====================================================
+   CALVARY TABERNACLE USHERING SYSTEM v5.0
+   Sacred-Modern Dark Theme | Navy + Gold
+   ===================================================== */
+:root{
+  --navy:#070d1b; --navy-mid:#0d1729; --navy-light:#152035; --navy-card:#0f1e38;
+  --gold:#c9922a; --gold-light:#e4b75c; --gold-pale:#f5e6c8;
+  --cream:#f0e8d8; --white:#fff;
+  --muted:#7a8ba8; --success:#22c55e; --warning:#f59e0b; --danger:#ef4444; --info:#3b82f6;
+  --border:rgba(201,146,42,0.22); --glass:rgba(15,30,56,0.8);
+  --radius:14px; --radius-sm:8px; --tr:0.25s cubic-bezier(0.4,0,0.2,1);
+  --sidebar-w:258px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{height:100%;scroll-behavior:smooth}
+body{font-family:'Nunito',sans-serif;background:var(--navy);color:var(--cream);min-height:100vh;overflow-x:hidden;font-size:15px;line-height:1.6}
+a{text-decoration:none}
+input,select,textarea,button{font-family:'Nunito',sans-serif}
+
+/* BG */
+.bg-scene{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.bg-scene::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 20% 10%,rgba(201,146,42,0.07) 0%,transparent 60%),linear-gradient(160deg,#070d1b 0%,#0d1729 50%,#070d1b 100%)}
+.bg-orb{position:absolute;border-radius:50%;filter:blur(90px);opacity:0.07}
+.bg-orb-1{width:600px;height:600px;background:var(--gold);top:-200px;left:-100px;animation:drift 22s ease-in-out infinite}
+.bg-orb-2{width:400px;height:400px;background:#4a6fa5;bottom:-100px;right:-50px;animation:drift 30s ease-in-out infinite reverse}
+.bg-cross{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:400px;height:400px;opacity:0.012;background:linear-gradient(var(--gold),var(--gold)) center/6px 100% no-repeat,linear-gradient(var(--gold),var(--gold)) center/100% 6px no-repeat}
+@keyframes drift{0%,100%{transform:translate(0,0)}50%{transform:translate(30px,-30px)}}
+
+/* ===================== LOGIN SCREEN ===================== */
+#login-screen{position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px;background:var(--navy)}
+#login-screen.hidden{display:none}
+.login-card{background:var(--glass);border:1px solid var(--border);border-radius:24px;padding:44px 40px 40px;backdrop-filter:blur(24px);box-shadow:0 24px 80px rgba(0,0,0,0.5);width:100%;max-width:430px;animation:cardIn 0.6s cubic-bezier(0.16,1,0.3,1) both}
+@keyframes cardIn{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+.login-header{text-align:center;margin-bottom:32px}
+.logo-wrap{width:82px;height:82px;background:linear-gradient(135deg,#fff 0%,#f0e8d8 100%);border-radius:20px;display:flex;align-items:center;justify-content:center;margin:0 auto 18px;box-shadow:0 8px 32px rgba(201,146,42,0.25),0 0 0 6px rgba(201,146,42,0.08);overflow:hidden}
+.logo-wrap img{width:100%;height:100%;object-fit:contain}
+.login-header h1{font-family:'Playfair Display',serif;font-size:22px;font-weight:900;color:var(--white);margin-bottom:5px}
+.login-header h1 span{color:var(--gold-light)}
+.login-header p{font-size:13px;color:var(--muted)}
+.form-group{margin-bottom:18px}
+.form-label{display:block;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:7px}
+.input-wrap{position:relative}
+.input-wrap .icon{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:14px;pointer-events:none;transition:color var(--tr)}
+.form-input{width:100%;background:rgba(7,13,27,0.7);border:1px solid var(--border);border-radius:12px;color:var(--white);font-size:14px;font-weight:600;padding:13px 44px;outline:none;transition:var(--tr)}
+.form-input::placeholder{color:rgba(122,139,168,0.5);font-weight:400}
+.form-input:focus{border-color:var(--gold);background:rgba(15,30,56,0.8);box-shadow:0 0 0 3px rgba(201,146,42,0.12)}
+.input-wrap:focus-within .icon{color:var(--gold-light)}
+.pw-toggle{position:absolute;right:14px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px;transition:color var(--tr)}
+.pw-toggle:hover{color:var(--gold-light)}
+.btn-primary{width:100%;background:linear-gradient(135deg,var(--gold) 0%,var(--gold-light) 100%);color:var(--navy);border:none;border-radius:12px;padding:14px 24px;font-size:15px;font-weight:800;cursor:pointer;transition:var(--tr);display:flex;align-items:center;justify-content:center;gap:10px;letter-spacing:0.3px}
+.btn-primary:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 8px 24px rgba(201,146,42,0.45)}
+.btn-primary:disabled{opacity:0.7;cursor:not-allowed;transform:none}
+.btn-primary.loading .btn-text{display:none}
+.btn-primary.loading .btn-spinner{display:flex;align-items:center;gap:8px}
+.btn-spinner{display:none}
+.err-box{display:none;align-items:center;gap:8px;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);border-radius:10px;padding:10px 14px;font-size:13px;font-weight:600;color:#fca5a5;margin-bottom:16px}
+.err-box.show{display:flex;animation:shake 0.3s ease}
+.succ-box{display:none;align-items:center;gap:8px;background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.3);border-radius:10px;padding:10px 14px;font-size:13px;font-weight:600;color:#86efac;margin-bottom:16px}
+.succ-box.show{display:flex}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.link-btn{background:none;border:none;color:var(--gold-light);cursor:pointer;font-size:13px;font-weight:700;text-decoration:underline;padding:0}
+.login-footer{text-align:center;margin-top:16px;font-size:12px;color:var(--muted)}
+
+/* ===================== APP SHELL ===================== */
+#app{display:none;min-height:100vh}
+#app.visible{display:flex}
+
+/* SIDEBAR */
+.sidebar{position:fixed;left:0;top:0;width:var(--sidebar-w);height:100vh;background:rgba(7,13,27,0.97);backdrop-filter:blur(20px);border-right:1px solid var(--border);z-index:200;display:flex;flex-direction:column;box-shadow:4px 0 30px rgba(0,0,0,0.4);transition:transform var(--tr)}
+.sidebar-head{padding:22px 20px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px}
+.sb-logo{width:48px;height:48px;background:#fff;border-radius:14px;overflow:hidden;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.sb-logo img{width:100%;height:100%;object-fit:contain}
+.sb-title{font-family:'Playfair Display',serif;font-size:14px;font-weight:700;color:var(--gold-light);line-height:1.2}
+.sb-sub{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-top:2px}
+.sb-nav{flex:1;padding:12px 0;overflow-y:auto}
+.sb-section{padding:8px 20px 4px;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px;font-weight:700;margin-top:6px}
+.nav-item{display:flex;align-items:center;gap:12px;padding:11px 18px;color:var(--muted);cursor:pointer;border:none;background:transparent;width:100%;text-align:left;font-size:13.5px;font-weight:600;border-radius:10px;margin:2px 8px;width:calc(100% - 16px);transition:all var(--tr)}
+.nav-item:hover,.nav-item.active{color:var(--cream);background:rgba(201,146,42,0.1)}
+.nav-item.active{color:var(--gold-light)}
+.nav-item .ni{font-size:15px;width:20px;text-align:center;flex-shrink:0}
+.sb-footer{padding:14px 20px;border-top:1px solid var(--border)}
+.user-card{display:flex;align-items:center;gap:10px;padding:10px;background:rgba(201,146,42,0.06);border-radius:10px;border:1px solid var(--border);margin-bottom:10px}
+.user-avatar{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--gold-light));display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;color:var(--navy);flex-shrink:0}
+.user-name{font-size:13px;font-weight:700;color:var(--white)}
+.user-role{font-size:11px;color:var(--muted)}
+.btn-signout{width:100%;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2);border-radius:8px;color:#fca5a5;padding:9px;font-size:12px;font-weight:700;cursor:pointer;transition:var(--tr);display:flex;align-items:center;justify-content:center;gap:7px}
+.btn-signout:hover{background:rgba(239,68,68,0.2);border-color:rgba(239,68,68,0.4)}
+
+/* MAIN CONTENT */
+.main-area{margin-left:var(--sidebar-w);flex:1;display:flex;flex-direction:column;min-height:100vh;position:relative;z-index:1}
+.top-bar{display:flex;align-items:center;justify-content:space-between;padding:14px 28px;background:rgba(7,13,27,0.9);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;flex-wrap:wrap;gap:10px}
+.top-bar-left{display:flex;align-items:center;gap:12px}
+.hamburger{display:none;background:none;border:none;color:var(--cream);font-size:20px;cursor:pointer;padding:4px}
+.page-title-group h2{font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:var(--gold-light)}
+.page-title-group span{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1.2px}
+.top-bar-right{display:flex;align-items:center;gap:10px}
+.live-badge{display:flex;align-items:center;gap:6px;background:rgba(34,197,94,0.12);border:1px solid rgba(34,197,94,0.3);border-radius:20px;padding:5px 12px;font-size:11px;font-weight:700;color:var(--success);text-transform:uppercase;letter-spacing:1px}
+.live-dot{width:7px;height:7px;background:var(--success);border-radius:50%;animation:pulseLive 1.5s ease-in-out infinite}
+@keyframes pulseLive{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.4;transform:scale(0.8)}}
+.clock{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--muted);padding:5px 12px;background:var(--navy-light);border-radius:8px}
+.sync-pill{display:flex;align-items:center;gap:6px;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;transition:var(--tr)}
+.sync-pill.synced{background:rgba(34,197,94,0.12);border:1px solid rgba(34,197,94,0.3);color:var(--success)}
+.sync-pill.syncing{background:rgba(59,130,246,0.12);border:1px solid rgba(59,130,246,0.3);color:var(--info)}
+.sync-pill.offline{background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.3);color:var(--danger)}
+.sync-dot-sm{width:6px;height:6px;border-radius:50%}
+.synced .sync-dot-sm{background:var(--success)}
+.syncing .sync-dot-sm{background:var(--info);animation:pulseLive 1s ease-in-out infinite}
+.offline .sync-dot-sm{background:var(--danger)}
+
+/* VIEWS */
+.view{display:none;padding:24px 28px 60px;animation:fadeView 0.3s ease both}
+.view.active{display:block}
+@keyframes fadeView{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* SECTION HEADER */
+.section-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:22px;flex-wrap:wrap;gap:12px}
+.section-hdr h3{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:var(--white)}
+.section-hdr p{font-size:13px;color:var(--muted);margin-top:2px}
+
+/* STAT CARDS */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:24px}
+.stat-card{background:var(--glass);border:1px solid var(--border);border-radius:var(--radius);padding:18px;backdrop-filter:blur(12px);transition:var(--tr);cursor:default}
+.stat-card:hover{transform:translateY(-2px);border-color:rgba(201,146,42,0.4)}
+.sc-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.sc-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:17px}
+.sc-icon.gold{background:rgba(201,146,42,0.15);color:var(--gold-light)}
+.sc-icon.green{background:rgba(34,197,94,0.12);color:var(--success)}
+.sc-icon.blue{background:rgba(59,130,246,0.12);color:var(--info)}
+.sc-icon.red{background:rgba(239,68,68,0.12);color:var(--danger)}
+.sc-num{font-family:'JetBrains Mono',monospace;font-size:30px;font-weight:700;color:var(--white);line-height:1}
+.sc-label{font-size:12px;color:var(--muted);font-weight:600;margin-top:4px}
+
+/* CARDS */
+.card{background:var(--glass);border:1px solid var(--border);border-radius:var(--radius);padding:22px;backdrop-filter:blur(12px);margin-bottom:18px}
+.card-title{font-family:'Playfair Display',serif;font-size:16px;font-weight:700;color:var(--gold-light);margin-bottom:16px;display:flex;align-items:center;gap:8px}
+
+/* FORMS */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.form-grid.cols-3{grid-template-columns:1fr 1fr 1fr}
+.form-grid.cols-1{grid-template-columns:1fr}
+.field-group{display:flex;flex-direction:column;gap:6px}
+.field-group.span-2{grid-column:span 2}
+.field-group.span-3{grid-column:span 3}
+.field-label{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--muted)}
+.field-input,.field-select,.field-textarea{background:rgba(7,13,27,0.6);border:1px solid var(--border);border-radius:10px;color:var(--white);font-size:13.5px;font-weight:600;padding:11px 14px;outline:none;transition:var(--tr);width:100%}
+.field-input::placeholder,.field-textarea::placeholder{color:rgba(122,139,168,0.4);font-weight:400}
+.field-input:focus,.field-select:focus,.field-textarea:focus{border-color:var(--gold);background:rgba(15,30,56,0.7);box-shadow:0 0 0 3px rgba(201,146,42,0.1)}
+.field-select option{background:var(--navy-mid);color:var(--white)}
+.field-textarea{resize:vertical;min-height:80px}
+.checkbox-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:8px}
+.checkbox-item{display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;font-weight:600;color:var(--muted);transition:color var(--tr)}
+.checkbox-item:hover,.checkbox-item input:checked+span{color:var(--cream)}
+.checkbox-item input{accent-color:var(--gold);width:16px;height:16px;cursor:pointer}
+.form-actions{display:flex;gap:12px;margin-top:6px;flex-wrap:wrap}
+.btn-gold{background:linear-gradient(135deg,var(--gold),var(--gold-light));color:var(--navy);border:none;border-radius:10px;padding:11px 24px;font-size:13px;font-weight:800;cursor:pointer;transition:var(--tr);display:flex;align-items:center;gap:8px}
+.btn-gold:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(201,146,42,0.4)}
+.btn-outline{background:transparent;border:1px solid var(--border);border-radius:10px;color:var(--muted);padding:11px 20px;font-size:13px;font-weight:700;cursor:pointer;transition:var(--tr);display:flex;align-items:center;gap:8px}
+.btn-outline:hover{border-color:var(--gold);color:var(--gold-light)}
+.btn-danger{background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.25);border-radius:10px;color:#fca5a5;padding:11px 20px;font-size:13px;font-weight:700;cursor:pointer;transition:var(--tr);display:flex;align-items:center;gap:8px}
+.btn-danger:hover{background:rgba(239,68,68,0.2)}
+.btn-sm{padding:7px 14px;font-size:12px}
+.btn-xs{padding:5px 10px;font-size:11px;border-radius:7px}
+
+/* TABLES */
+.table-wrap{overflow-x:auto}
+table.data-table{width:100%;border-collapse:collapse;font-size:13px}
+.data-table th{background:rgba(201,146,42,0.08);color:var(--gold-light);font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:1px;padding:12px 14px;border-bottom:1px solid var(--border);white-space:nowrap;text-align:left}
+.data-table td{padding:11px 14px;border-bottom:1px solid rgba(201,146,42,0.07);vertical-align:middle;color:var(--cream)}
+.data-table tr:hover td{background:rgba(201,146,42,0.04)}
+.data-table tr:last-child td{border-bottom:none}
+.empty-state{text-align:center;padding:40px 20px;color:var(--muted)}
+.empty-state i{font-size:36px;margin-bottom:12px;color:var(--border)}
+.empty-state p{font-size:14px}
+
+/* BADGES */
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px}
+.badge-green{background:rgba(34,197,94,0.12);color:var(--success)}
+.badge-gold{background:rgba(201,146,42,0.15);color:var(--gold-light)}
+.badge-blue{background:rgba(59,130,246,0.12);color:var(--info)}
+.badge-red{background:rgba(239,68,68,0.12);color:var(--danger)}
+.badge-muted{background:rgba(122,139,168,0.12);color:var(--muted)}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(4px);z-index:500;display:none;align-items:center;justify-content:center;padding:20px}
+.modal-overlay.open{display:flex}
+.modal{background:var(--navy-card);border:1px solid var(--border);border-radius:20px;padding:28px;width:100%;max-width:560px;max-height:90vh;overflow-y:auto;position:relative;box-shadow:0 24px 80px rgba(0,0,0,0.6);animation:modalIn 0.3s cubic-bezier(0.16,1,0.3,1) both}
+.modal-lg{max-width:700px}
+@keyframes modalIn{from{opacity:0;transform:scale(0.95) translateY(20px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.modal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.modal-title{font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:var(--gold-light)}
+.modal-close{background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;padding:4px;transition:color var(--tr)}
+.modal-close:hover{color:var(--white)}
+
+/* TOAST */
+.toast-container{position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:8px}
+.toast{display:flex;align-items:center;gap:10px;padding:12px 18px;border-radius:12px;font-size:14px;font-weight:600;box-shadow:0 8px 32px rgba(0,0,0,0.4);animation:toastIn 0.3s cubic-bezier(0.16,1,0.3,1) both;cursor:pointer;max-width:340px;backdrop-filter:blur(12px)}
+.toast.success{background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.3);color:var(--success)}
+.toast.error{background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.3);color:#fca5a5}
+.toast.info{background:rgba(59,130,246,0.15);border:1px solid rgba(59,130,246,0.3);color:#93c5fd}
+.toast.warning{background:rgba(245,158,11,0.15);border:1px solid rgba(245,158,11,0.3);color:#fcd34d}
+@keyframes toastIn{from{opacity:0;transform:translateX(40px)}to{opacity:1;transform:translateX(0)}}
+
+/* SEARCH */
+.search-bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.search-input-wrap{position:relative;flex:1;min-width:200px}
+.search-input-wrap i{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:13px}
+.search-input{background:rgba(7,13,27,0.6);border:1px solid var(--border);border-radius:10px;color:var(--white);padding:10px 12px 10px 36px;font-size:13px;outline:none;width:100%;transition:var(--tr)}
+.search-input:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(201,146,42,0.1)}
+
+/* TABS (within views) */
+.tab-bar{display:flex;gap:4px;background:rgba(7,13,27,0.6);border:1px solid var(--border);border-radius:12px;padding:4px;margin-bottom:20px;flex-wrap:wrap}
+.tab-btn{flex:1;min-width:100px;padding:9px 12px;background:transparent;border:none;border-radius:9px;color:var(--muted);font-size:13px;font-weight:700;cursor:pointer;transition:var(--tr);white-space:nowrap}
+.tab-btn.active{background:linear-gradient(135deg,var(--gold),var(--gold-light));color:var(--navy);box-shadow:0 2px 8px rgba(201,146,42,0.35)}
+
+/* RESPONSIVE */
+@media(max-width:900px){
+  .sidebar{transform:translateX(-100%)}
+  .sidebar.open{transform:translateX(0)}
+  .main-area{margin-left:0}
+  .hamburger{display:block}
+  .form-grid{grid-template-columns:1fr}
+  .field-group.span-2,.field-group.span-3{grid-column:span 1}
+  .stats-grid{grid-template-columns:1fr 1fr}
+  .view{padding:16px 16px 60px}
+  .top-bar{padding:12px 16px}
+}
+@media(max-width:480px){
+  .stats-grid{grid-template-columns:1fr}
+  .login-card{padding:28px 20px 24px}
+  .modal{padding:20px}
+  .form-actions{flex-direction:column}
+  .btn-gold,.btn-outline,.btn-danger{width:100%;justify-content:center}
+}
+
+/* SIDEBAR OVERLAY */
+.sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:150;backdrop-filter:blur(2px)}
+.sidebar-overlay.show{display:block}
+
+/* REPORT PREVIEW */
+.report-preview{background:rgba(7,13,27,0.5);border:1px solid var(--border);border-radius:12px;padding:20px;margin-top:16px}
+.report-section{margin-bottom:20px}
+.report-section-title{font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--gold-light);margin-bottom:12px;padding-bottom:6px;border-bottom:1px solid var(--border)}
+.report-row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid rgba(201,146,42,0.06);font-size:13px}
+.report-row:last-child{border-bottom:none}
+.report-row label{color:var(--muted);font-weight:600}
+.report-row span{color:var(--cream);font-weight:700;font-family:'JetBrains Mono',monospace}
+
+/* ATTENDANCE TYPE ROW */
+.att-row{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px}
+</style>
+</head>
+<body>
+<div class="bg-scene">
+  <div class="bg-orb bg-orb-1"></div>
+  <div class="bg-orb bg-orb-2"></div>
+  <div class="bg-cross"></div>
+</div>
+
+<!-- TOAST CONTAINER -->
+<div class="toast-container" id="toast-container"></div>
+
+<!-- =================== LOGIN =================== -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-header">
+      <div class="logo-wrap"><img id="login-logo" src="ush_logo.png" alt="Logo"></div>
+      <h1>Calvary <span>Tabernacle</span></h1>
+      <p>Ushering Ministry System v5.0</p>
+    </div>
+    <div class="err-box" id="login-err"><i class="fas fa-exclamation-circle"></i><span id="login-err-txt"></span></div>
+    <div class="form-group">
+      <label class="form-label">Email Address</label>
+      <div class="input-wrap">
+        <i class="icon fas fa-envelope"></i>
+        <input type="email" id="login-email" class="form-input" placeholder="your@email.com" autocomplete="email">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Password</label>
+      <div class="input-wrap">
+        <i class="icon fas fa-lock"></i>
+        <input type="password" id="login-password" class="form-input" placeholder="••••••••">
+        <button class="pw-toggle" onclick="togglePw('login-password',this)" type="button"><i class="fas fa-eye"></i></button>
+      </div>
+    </div>
+    <button class="btn-primary" id="login-btn" onclick="doLogin()">
+      <span class="btn-text"><i class="fas fa-sign-in-alt"></i> Sign In</span>
+      <span class="btn-spinner"><i class="fas fa-circle-notch fa-spin"></i> Signing in…</span>
+    </button>
+    <div class="login-footer" style="margin-top:14px">
+      <button class="link-btn" onclick="showReset()" style="margin-bottom:8px;display:block;width:100%;text-align:center">Forgot password?</button>
+      <small>United Pentecostal Church — Calvary Tabernacle<br>#7 Lower P. Burgos, Baguio City</small>
+    </div>
+  </div>
+</div>
+
+<!-- =================== RESET PASSWORD MODAL =================== -->
+<div class="modal-overlay" id="reset-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title"><i class="fas fa-key"></i> Reset Password</div>
+      <button class="modal-close" onclick="closeModal('reset-modal')"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="succ-box" id="reset-succ"><i class="fas fa-check-circle"></i> Reset email sent! Check your inbox.</div>
+    <div class="err-box" id="reset-err"><i class="fas fa-exclamation-circle"></i><span id="reset-err-txt"></span></div>
+    <div class="field-group" style="margin-bottom:16px">
+      <label class="field-label">Email Address</label>
+      <input type="email" id="reset-email" class="field-input" placeholder="your@email.com">
+    </div>
+    <button class="btn-gold" onclick="doReset()"><i class="fas fa-paper-plane"></i> Send Reset Link</button>
+  </div>
+</div>
+
+<!-- =================== MAIN APP =================== -->
+<div id="app">
+  <!-- SIDEBAR -->
+  <div class="sidebar-overlay" id="sb-overlay" onclick="closeSidebar()"></div>
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-head">
+      <div class="sb-logo"><img id="app-logo" src="ush_logo.png" alt="Logo"></div>
+      <div>
+        <div class="sb-title">Calvary Tabernacle</div>
+        <div class="sb-sub">Ushering System v5.0</div>
+      </div>
+    </div>
+    <nav class="sb-nav">
+      <div class="sb-section">Overview</div>
+      <button class="nav-item active" onclick="showView('dashboard')"><i class="ni fas fa-tachometer-alt"></i> Dashboard</button>
+      <div class="sb-section">Operations</div>
+      <button class="nav-item" onclick="showView('checkin')"><i class="ni fas fa-clipboard-check"></i> Check-in / Out</button>
+      <button class="nav-item" onclick="showView('visitors')"><i class="ni fas fa-user-plus"></i> Visitors</button>
+      <button class="nav-item" onclick="showView('baptism')"><i class="ni fas fa-water"></i> Baptism Records</button>
+      <button class="nav-item" onclick="showView('report')"><i class="ni fas fa-file-alt"></i> Sunday Report</button>
+      <div class="sb-section">Management</div>
+      <button class="nav-item" onclick="showView('ushers')"><i class="ni fas fa-users"></i> Ushers</button>
+      <button class="nav-item data-admin-only" onclick="showView('admin')" style="display:none"><i class="ni fas fa-cog"></i> Admin Panel</button>
+    </nav>
+    <div class="sb-footer">
+      <div class="user-card">
+        <div class="user-avatar" id="sb-avatar">US</div>
+        <div>
+          <div class="user-name" id="sb-name">Loading…</div>
+          <div class="user-role" id="sb-role">Usher</div>
+        </div>
+      </div>
+      <button class="btn-signout" onclick="doSignOut()"><i class="fas fa-sign-out-alt"></i> Sign Out</button>
+    </div>
+  </aside>
+
+  <!-- MAIN AREA -->
+  <div class="main-area">
+    <div class="top-bar">
+      <div class="top-bar-left">
+        <button class="hamburger" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+        <div class="page-title-group">
+          <h2 id="page-title">Dashboard</h2>
+          <span id="page-sub">Overview &amp; Live Stats</span>
+        </div>
+      </div>
+      <div class="top-bar-right">
+        <div class="live-badge"><div class="live-dot"></div> Live</div>
+        <div class="clock" id="clock">00:00:00</div>
+        <div class="sync-pill syncing" id="sync-pill"><div class="sync-dot-sm"></div><span id="sync-text">Connecting</span></div>
+      </div>
+    </div>
+
+    <!-- ========== DASHBOARD ========== -->
+    <div class="view active" id="view-dashboard">
+      <div class="section-hdr">
+        <div><h3>Live Dashboard</h3><p id="dash-date">Today's overview</p></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn-outline btn-sm" onclick="refreshDashboard()"><i class="fas fa-sync-alt"></i> Refresh</button>
+          <button class="btn-gold btn-sm" onclick="showView('visitors')"><i class="fas fa-user-plus"></i> Add Visitor</button>
+        </div>
+      </div>
+      <div class="stats-grid" id="stats-grid">
+        <div class="stat-card"><div class="sc-top"><div class="sc-icon gold"><i class="fas fa-users"></i></div></div><div class="sc-num" id="stat-ushers">0</div><div class="sc-label">Active Ushers</div></div>
+        <div class="stat-card"><div class="sc-top"><div class="sc-icon green"><i class="fas fa-user-plus"></i></div></div><div class="sc-num" id="stat-visitors">0</div><div class="sc-label">Visitors Today</div></div>
+        <div class="stat-card"><div class="sc-top"><div class="sc-icon blue"><i class="fas fa-star"></i></div></div><div class="sc-num" id="stat-firsttime">0</div><div class="sc-label">First-Time Visitors</div></div>
+        <div class="stat-card"><div class="sc-top"><div class="sc-icon red"><i class="fas fa-water"></i></div></div><div class="sc-num" id="stat-baptism">0</div><div class="sc-label">Baptisms Total</div></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;flex-wrap:wrap" id="dash-grid">
+        <div class="card">
+          <div class="card-title"><i class="fas fa-clipboard-check"></i> Today's Check-ins</div>
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead><tr><th>Usher</th><th>Service</th><th>Section</th><th>Status</th></tr></thead>
+              <tbody id="dash-checkins-tbody"><tr><td colspan="4" class="empty-state"><i class="fas fa-inbox"></i><p>No check-ins yet</p></td></tr></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title"><i class="fas fa-user-plus"></i> Today's Visitors</div>
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead><tr><th>Name</th><th>Service</th><th>First?</th></tr></thead>
+              <tbody id="dash-visitors-tbody"><tr><td colspan="3" class="empty-state"><i class="fas fa-inbox"></i><p>No visitors yet</p></td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== CHECK-IN ========== -->
+    <div class="view" id="view-checkin">
+      <div class="section-hdr">
+        <div><h3>Check-in / Out</h3><p>Manage usher attendance</p></div>
+        <div style="display:flex;gap:8px">
+          <button class="btn-outline btn-sm" onclick="bulkCheckOut()"><i class="fas fa-sign-out-alt"></i> Bulk Check-Out</button>
+          <button class="btn-gold btn-sm" onclick="openModal('checkin-modal')"><i class="fas fa-plus"></i> Check In</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title"><i class="fas fa-list"></i> Today's Attendance</div>
+        <div class="search-bar" style="margin-bottom:14px">
+          <div class="search-input-wrap"><i class="fas fa-search"></i><input class="search-input" id="ci-search" placeholder="Search usher…" oninput="renderCheckins()"></div>
+        </div>
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead><tr><th>Usher</th><th>Department</th><th>Service</th><th>Section</th><th>Time In</th><th>Time Out</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody id="ci-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== VISITORS ========== -->
+    <div class="view" id="view-visitors">
+      <div class="section-hdr">
+        <div><h3>Visitor Records</h3><p>Manage and log visitors</p></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn-outline btn-sm" onclick="exportVisitors()"><i class="fas fa-download"></i> Export</button>
+          <button class="btn-gold btn-sm" onclick="openAddVisitor()"><i class="fas fa-plus"></i> Add Visitor</button>
+        </div>
+      </div>
+      <div class="tab-bar">
+        <button class="tab-btn active" onclick="switchVTab('form',this)">Add New Visitor</button>
+        <button class="tab-btn" onclick="switchVTab('list',this)">All Records</button>
+      </div>
+      <div id="v-form-panel">
+        <div class="card">
+          <div class="card-title"><i class="fas fa-user-plus"></i> New Visitor Registration</div>
+          <div class="form-grid">
+            <div class="field-group span-2"><label class="field-label">Full Name *</label><input type="text" id="v-name" class="field-input" placeholder="Complete name"></div>
+            <div class="field-group"><label class="field-label">Contact Number</label><input type="tel" id="v-contact" class="field-input" placeholder="+639xx xxx xxxx"></div>
+            <div class="field-group"><label class="field-label">Email Address</label><input type="email" id="v-email" class="field-input" placeholder="email@example.com"></div>
+            <div class="field-group span-2"><label class="field-label">Home Address</label><input type="text" id="v-address" class="field-input" placeholder="Barangay, City, Province"></div>
+            <div class="field-group"><label class="field-label">Gender</label>
+              <select id="v-gender" class="field-select"><option value="">Select gender</option><option>Male</option><option>Female</option></select>
+            </div>
+            <div class="field-group"><label class="field-label">Civil Status</label>
+              <select id="v-civil" class="field-select"><option value="">Select status</option><option>Single</option><option>Married</option><option>Widowed</option><option>Separated</option></select>
+            </div>
+            <div class="field-group"><label class="field-label">Age</label><input type="number" id="v-age" class="field-input" placeholder="Age" min="1" max="120"></div>
+            <div class="field-group"><label class="field-label">First Time Visitor?</label>
+              <select id="v-firsttime" class="field-select"><option value="yes">Yes — First Time</option><option value="no">No — Returning</option></select>
+            </div>
+            <div class="field-group"><label class="field-label">Service Type</label>
+              <select id="v-service" class="field-select"><option value="">Select service</option><option>Sunday Service</option><option>Sunday Evening</option><option>Wednesday Bible Study</option><option>Special Event</option></select>
+            </div>
+            <div class="field-group"><label class="field-label">Department</label>
+              <select id="v-dept" class="field-select"><option value="">Select dept</option><option>AMM Ministries</option><option>Ladies Ministries</option><option>Youth Ministries</option><option>Children's Ministry</option><option>General</option></select>
+            </div>
+            <div class="field-group"><label class="field-label">Guest Of (Usher/Member)</label><input type="text" id="v-guestof" class="field-input" placeholder="Name of host"></div>
+            <div class="field-group"><label class="field-label">Assigned Usher</label>
+              <select id="v-usher" class="field-select"><option value="">Auto-assign</option></select>
+            </div>
+            <div class="field-group span-2">
+              <label class="field-label">Areas of Interest</label>
+              <div class="checkbox-grid">
+                <label class="checkbox-item"><input type="checkbox" value="Bible Study"><span>Bible Study</span></label>
+                <label class="checkbox-item"><input type="checkbox" value="Youth Group"><span>Youth Group</span></label>
+                <label class="checkbox-item"><input type="checkbox" value="Worship Team"><span>Worship Team</span></label>
+                <label class="checkbox-item"><input type="checkbox" value="Prayer Group"><span>Prayer Group</span></label>
+                <label class="checkbox-item"><input type="checkbox" value="Ushering"><span>Ushering</span></label>
+                <label class="checkbox-item"><input type="checkbox" value="Media Ministry"><span>Media Ministry</span></label>
+              </div>
+            </div>
+            <div class="field-group span-2"><label class="field-label">Prayer Request</label><textarea id="v-prayer" class="field-textarea" placeholder="Write prayer request here…"></textarea></div>
+          </div>
+          <div class="form-actions">
+            <button class="btn-gold" onclick="saveVisitor()"><i class="fas fa-save"></i> Save Visitor</button>
+            <button class="btn-outline" onclick="clearVisitorForm()"><i class="fas fa-undo"></i> Clear</button>
+          </div>
+        </div>
+      </div>
+      <div id="v-list-panel" style="display:none">
+        <div class="card">
+          <div class="card-title"><i class="fas fa-list"></i> All Visitors</div>
+          <div class="search-bar" style="margin-bottom:14px">
+            <div class="search-input-wrap"><i class="fas fa-search"></i><input class="search-input" id="v-search" placeholder="Search by name, contact…" oninput="renderVisitors()"></div>
+            <select class="field-select" style="width:auto;min-width:160px" id="v-filter-first" onchange="renderVisitors()">
+              <option value="">All Visitors</option><option value="yes">First-Time Only</option><option value="no">Returning Only</option>
+            </select>
+          </div>
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead><tr><th>Date</th><th>Name</th><th>Contact</th><th>Service</th><th>Dept</th><th>First?</th><th>Actions</th></tr></thead>
+              <tbody id="v-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== BAPTISM ========== -->
+    <div class="view" id="view-baptism">
+      <div class="section-hdr">
+        <div><h3>Baptism Records</h3><p>Track and manage baptism candidates</p></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn-outline btn-sm" onclick="exportBaptism()"><i class="fas fa-download"></i> Export</button>
+        </div>
+      </div>
+      <div class="tab-bar">
+        <button class="tab-btn active" onclick="switchBTab('form',this)">Register Candidate</button>
+        <button class="tab-btn" onclick="switchBTab('list',this)">All Records</button>
+      </div>
+      <div id="b-form-panel">
+        <div class="card">
+          <div class="card-title"><i class="fas fa-water"></i> Water Baptism  Registration</div>
+          <div class="form-grid">
+            <div class="field-group span-2"><label class="field-label">Full Name *</label><input type="text" id="b-name" class="field-input" placeholder="Complete legal name"></div>
+            <div class="field-group"><label class="field-label">Date of Birth</label><input type="date" id="b-dob" class="field-input"></div>
+            <div class="field-group"><label class="field-label">Age</label><input type="number" id="b-age" class="field-input" placeholder="Age" min="1"></div>
+            <div class="field-group"><label class="field-label">Gender</label>
+              <select id="b-gender" class="field-select"><option value="">Select gender</option><option>Male</option><option>Female</option></select>
+            </div>
+            <div class="field-group"><label class="field-label">Civil Status</label>
+              <select id="b-civil" class="field-select"><option value="">Select status</option><option>Single</option><option>Married</option><option>Widowed</option><option>Separated</option></select>
+            </div>
+            <div class="field-group"><label class="field-label">Contact Number</label><input type="tel" id="b-contact" class="field-input" placeholder="+639xx xxx xxxx"></div>
+            <div class="field-group"><label class="field-label">Email Address</label><input type="email" id="b-email" class="field-input" placeholder="email@example.com"></div>
+            <div class="field-group span-2"><label class="field-label">Home Address</label><input type="text" id="b-address" class="field-input" placeholder="Complete address"></div>
+            <div class="field-group"><label class="field-label">Baptism Date *</label><input type="date" id="b-date" class="field-input"></div>
+            <div class="field-group"><label class="field-label">Baptism Service Type</label>
+              <select id="b-service" class="field-select"><option value="">Select service</option><option>Sunday Service</option><option>Sunday Evening</option><option>Wednesday Bible Study</option><option>Special Event 
+
+              </option></select>
+            </div>
+            <div class="field-group"><label class="field-label">Baptizing Minister</label><input type="text" id="b-minister" class="field-input" placeholder="Pastor/Minister name"></div>
+            <div class="field-group"><label class="field-label">Home Church / Branch</label><input type="text" id="b-branch" class="field-input" placeholder="Church name" value="Calvary Tabernacle"></div>
+            <div class="field-group"><label class="field-label">Department / Ministry</label>
+              <select id="b-dept" class="field-select"><option value="">Select dept</option><option>AMM Ministries</option><option>Ladies Ministries</option><option>Youth Ministries</option><option>Children's Ministry</option><option>General</option></select>
+            </div>
+            <div class="field-group"><label class="field-label">Status</label>
+              <select id="b-status" class="field-select"><option value="pending">Pending / Candidate</option><option value="baptized">Baptized</option><option value="rescheduled">Rescheduled</option></select>
+            </div>
+            <div class="field-group span-2"><label class="field-label">Notes / Remarks</label><textarea id="b-notes" class="field-textarea" placeholder="Additional notes…"></textarea></div>
+          </div>
+          <div class="form-actions">
+            <button class="btn-gold" onclick="saveBaptism()"><i class="fas fa-save"></i> Save Record</button>
+            <button class="btn-outline" onclick="clearBaptismForm()"><i class="fas fa-undo"></i> Clear</button>
+          </div>
+        </div>
+      </div>
+      <div id="b-list-panel" style="display:none">
+        <div class="card">
+          <div class="card-title"><i class="fas fa-list"></i> Baptism Records</div>
+          <div class="search-bar" style="margin-bottom:14px">
+            <div class="search-input-wrap"><i class="fas fa-search"></i><input class="search-input" id="b-search" placeholder="Search by name…" oninput="renderBaptisms()"></div>
+            <select class="field-select" style="width:auto;min-width:160px" id="b-filter-status" onchange="renderBaptisms()">
+              <option value="">All Status</option><option value="pending">Pending</option><option value="baptized">Baptized</option><option value="rescheduled">Rescheduled</option>
+            </select>
+          </div>
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead><tr><th>Date</th><th>Name</th><th>Age</th><th>Contact</th><th>Minister</th><th>Status</th><th>Actions</th></tr></thead>
+              <tbody id="b-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== SUNDAY REPORT ========== -->
+    <div class="view" id="view-report">
+      <div class="section-hdr">
+        <div><h3>Sunday Service Report</h3><p>Submit and view service attendance reports</p></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn-outline btn-sm" onclick="exportReports()"><i class="fas fa-download"></i> Export All</button>
+        </div>
+      </div>
+      <div class="tab-bar">
+        <button class="tab-btn active" onclick="switchRTab('form',this)">New Report</button>
+        <button class="tab-btn" onclick="switchRTab('list',this)">All Reports</button>
+      </div>
+      <div id="r-form-panel">
+        <div class="card">
+          <div class="card-title"><i class="fas fa-file-alt"></i> Service Attendance Report</div>
+          <div class="form-grid">
+            <div class="field-group"><label class="field-label">Service Date *</label><input type="date" id="r-date" class="field-input"></div>
+            <div class="field-group"><label class="field-label">Service Type *</label>
+              <select id="r-type" class="field-select"><option value="">Select service</option><option>Sunday Service</option><option>Wednesday Bible Study</option><option>Special Event</option></select>
+            </div>
+            <div class="field-group"><label class="field-label">Start Time</label><input type="time" id="r-start" class="field-input"></div>
+            <div class="field-group"><label class="field-label">End Time</label><input type="time" id="r-end" class="field-input"></div>
+            <div class="field-group"><label class="field-label">Speaker / Preacher</label><input type="text" id="r-speaker" class="field-input" placeholder="Name of preacher"></div>
+            <div class="field-group"><label class="field-label">Worship Leader</label><input type="text" id="r-worship" class="field-input" placeholder="Name of worship leader"></div>
+            <div class="field-group"><label class="field-label">Sermon Title</label><input type="text" id="r-sermon" class="field-input" placeholder="Title of sermon"></div>
+            <div class="field-group"><label class="field-label">Scripture Text</label><input type="text" id="r-scripture" class="field-input" placeholder="e.g. John 3:16"></div>
+          </div>
+          <!-- Attendance Numbers -->
+          <div style="margin-top:18px">
+            <div class="report-section-title" style="font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--gold-light);margin-bottom:14px;padding-bottom:6px;border-bottom:1px solid var(--border)">Attendance Count</div>
+            <div class="att-row" style="margin-bottom:12px">
+              <div class="field-group"><label class="field-label">Male Adults</label><input type="number" id="r-male" class="field-input" placeholder="0" min="0" oninput="calcTotal()"></div>
+              <div class="field-group"><label class="field-label">Female Adults</label><input type="number" id="r-female" class="field-input" placeholder="0" min="0" oninput="calcTotal()"></div>
+              <div class="field-group"><label class="field-label">Youth (13–17)</label><input type="number" id="r-youth" class="field-input" placeholder="0" min="0" oninput="calcTotal()"></div>
+              <div class="field-group"><label class="field-label">Children (0–12)</label><input type="number" id="r-children" class="field-input" placeholder="0" min="0" oninput="calcTotal()"></div>
+            </div>
+            <div class="att-row">
+              <div class="field-group"><label class="field-label">First-Time Visitors</label><input type="number" id="r-firstvisitors" class="field-input" placeholder="0" min="0" oninput="calcTotal()"></div>
+              <div class="field-group"><label class="field-label">Salvations</label><input type="number" id="r-salvations" class="field-input" placeholder="0" min="0"></div>
+              <div class="field-group"><label class="field-label">Baptisms</label><input type="number" id="r-baptisms" class="field-input" placeholder="0" min="0"></div>
+              <div class="field-group">
+                <label class="field-label">Total Attendance</label>
+                <input type="number" id="r-total" class="field-input" placeholder="Auto" style="background:rgba(201,146,42,0.06);font-weight:800;color:var(--gold-light)" readonly>
+              </div>
+            </div>
+          </div>
+          <!-- Offering -->
+          <div style="margin-top:18px">
+            <div class="report-section-title" style="font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--gold-light);margin-bottom:14px;padding-bottom:6px;border-bottom:1px solid var(--border)">Offering</div>
+            <div class="form-grid">
+              <div class="field-group"><label class="field-label">Tithes (₱)</label><input type="number" id="r-tithes" class="field-input" placeholder="0.00" min="0" step="0.01" oninput="calcOffering()"></div>
+              <div class="field-group"><label class="field-label">Offerings (₱)</label><input type="number" id="r-offerings" class="field-input" placeholder="0.00" min="0" step="0.01" oninput="calcOffering()"></div>
+              <div class="field-group"><label class="field-label">Building Fund (₱)</label><input type="number" id="r-building" class="field-input" placeholder="0.00" min="0" step="0.01" oninput="calcOffering()"></div>
+              <div class="field-group"><label class="field-label">Total Offering (₱)</label><input type="number" id="r-total-offering" class="field-input" placeholder="Auto" style="background:rgba(201,146,42,0.06);font-weight:800;color:var(--gold-light)" readonly></div>
+            </div>
+          </div>
+          <!-- Ushers on Duty -->
+          <div style="margin-top:18px">
+            <div class="report-section-title" style="font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--gold-light);margin-bottom:14px;padding-bottom:6px;border-bottom:1px solid var(--border)">Ushers on Duty</div>
+            <div class="form-grid">
+              <div class="field-group"><label class="field-label">Head Usher</label><input type="text" id="r-head-usher" class="field-input" placeholder="Name of head usher"></div>
+              <div class="field-group"><label class="field-label">Number of Ushers</label><input type="number" id="r-num-ushers" class="field-input" placeholder="0" min="0"></div>
+              <div class="field-group span-2"><label class="field-label">Ushers on Duty (names)</label><textarea id="r-usher-list" class="field-textarea" placeholder="List ushers on duty separated by commas…"></textarea></div>
+            </div>
+          </div>
+          <div class="form-grid" style="margin-top:18px">
+            <div class="field-group span-2"><label class="field-label">Highlights / Notable Events</label><textarea id="r-highlights" class="field-textarea" placeholder="Special events, announcements, notable moments…"></textarea></div>
+            <div class="field-group span-2"><label class="field-label">Challenges / Concerns</label><textarea id="r-challenges" class="field-textarea" placeholder="Issues encountered, things to improve…"></textarea></div>
+            <div class="field-group span-2"><label class="field-label">Prayer Requests / Items</label><textarea id="r-prayer" class="field-textarea" placeholder="List prayer requests for the congregation…"></textarea></div>
+            <div class="field-group"><label class="field-label">Report Submitted By</label><input type="text" id="r-submitted-by" class="field-input" placeholder="Your name"></div>
+            <div class="field-group"><label class="field-label">Submission Status</label>
+              <select id="r-submit-status" class="field-select"><option value="draft">Draft</option><option value="submitted">Submitted</option><option value="approved">Approved</option></select>
+            </div>
+          </div>
+          <div class="form-actions">
+            <button class="btn-gold" onclick="saveReport()"><i class="fas fa-save"></i> Save Report</button>
+            <button class="btn-outline" onclick="printReport()"><i class="fas fa-print"></i> Print / Export</button>
+            <button class="btn-outline" onclick="clearReportForm()"><i class="fas fa-undo"></i> Clear</button>
+          </div>
+        </div>
+      </div>
+      <div id="r-list-panel" style="display:none">
+        <div class="card">
+          <div class="card-title"><i class="fas fa-list"></i> All Reports</div>
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead><tr><th>Date</th><th>Service Type</th><th>Speaker</th><th>Total Attendance</th><th>Total Offering</th><th>Status</th><th>Actions</th></tr></thead>
+              <tbody id="r-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== USHERS ========== -->
+    <div class="view" id="view-ushers">
+      <div class="section-hdr">
+        <div><h3>Usher Management</h3><p>Register and manage ushers</p></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn-outline btn-sm" onclick="exportUshers()"><i class="fas fa-download"></i> Export</button>
+          <button class="btn-gold btn-sm" onclick="openModal('usher-modal')"><i class="fas fa-plus"></i> Add Usher</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="search-bar" style="margin-bottom:14px">
+          <div class="search-input-wrap"><i class="fas fa-search"></i><input class="search-input" id="u-search" placeholder="Search by name, dept, phone…" oninput="renderUshers()"></div>
+          <select class="field-select" style="width:auto;min-width:160px" id="u-filter-dept" onchange="renderUshers()">
+            <option value="">All Departments</option><option>AMM Ministries</option><option>Ladies Ministries</option><option>Youth Ministries</option><option>Children's Ministry</option>
+          </select>
+        </div>
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead><tr><th>ID</th><th>Name</th><th>Department</th><th>Type</th><th>Phone</th><th>Status</th><th>Check-ins</th><th>Actions</th></tr></thead>
+            <tbody id="u-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== ADMIN ========== -->
+    <div class="view" id="view-admin">
+      <div class="section-hdr"><div><h3>Admin Panel</h3><p>System management & settings</p></div></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px">
+        <div class="card">
+          <div class="card-title"><i class="fas fa-user-shield"></i> Create System User</div>
+          <div class="field-group" style="margin-bottom:12px"><label class="field-label">Display Name</label><input type="text" id="au-name" class="field-input" placeholder="Full name"></div>
+          <div class="field-group" style="margin-bottom:12px"><label class="field-label">Email Address</label><input type="email" id="au-email" class="field-input" placeholder="user@email.com"></div>
+          <div class="field-group" style="margin-bottom:12px"><label class="field-label">Password</label><input type="password" id="au-pass" class="field-input" placeholder="Min. 6 characters"></div>
+          <div class="field-group" style="margin-bottom:16px"><label class="field-label">Role</label>
+            <select id="au-role" class="field-select"><option value="usher">Usher</option><option value="admin">Admin</option><option value="viewer">Viewer (Read-only)</option></select>
+          </div>
+          <button class="btn-gold" onclick="createUser()"><i class="fas fa-user-plus"></i> Create Account</button>
+        </div>
+        <div class="card">
+          <div class="card-title"><i class="fas fa-cog"></i> Church Settings</div>
+          <div class="field-group" style="margin-bottom:12px"><label class="field-label">Church Name</label><input type="text" id="cfg-church" class="field-input" value="United Pentecostal Church"></div>
+          <div class="field-group" style="margin-bottom:12px"><label class="field-label">Branch Name</label><input type="text" id="cfg-branch" class="field-input" value="Calvary Tabernacle"></div>
+          <div class="field-group" style="margin-bottom:16px"><label class="field-label">Address</label><input type="text" id="cfg-address" class="field-input" value="#7 Lower P. Burgos, Baguio City"></div>
+          <button class="btn-gold" onclick="saveConfig()"><i class="fas fa-save"></i> Save Settings</button>
+        </div>
+        <div class="card">
+          <div class="card-title"><i class="fas fa-users"></i> System Users</div>
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Actions</th></tr></thead>
+              <tbody id="admin-users-tbody"><tr><td colspan="4" class="empty-state"><p>Loading…</p></td></tr></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title"><i class="fas fa-database"></i> Data Management</div>
+          <p style="font-size:13px;color:var(--muted);margin-bottom:16px">Export all system data or clear demo records.</p>
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <button class="btn-outline" onclick="exportAll()"><i class="fas fa-download"></i> Export All Data (CSV)</button>
+            <button class="btn-danger" onclick="confirmClear()"><i class="fas fa-trash-alt"></i> Clear Demo Data</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /main-area -->
+</div><!-- /app -->
+
+<!-- ========== MODALS ========== -->
+
+<!-- CHECK-IN MODAL -->
+<div class="modal-overlay" id="checkin-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title"><i class="fas fa-clipboard-check"></i> Check In Usher</div>
+      <button class="modal-close" onclick="closeModal('checkin-modal')"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="field-group" style="margin-bottom:12px"><label class="field-label">Usher ID or Name *</label>
+      <select id="ci-usher" class="field-select"><option value="">— Select Usher —</option></select>
+    </div>
+    <div class="field-group" style="margin-bottom:12px"><label class="field-label">Service</label>
+      <select id="ci-service" class="field-select"><option value="">Select service</option><option>Sunday Service</option><option>Sunday Evening</option><option>Wednesday Bible Study</option><option>Special Event</option></select>
+    </div>
+    <div class="field-group" style="margin-bottom:16px"><label class="field-label">Assigned Section</label>
+      <select id="ci-section" class="field-select">
+        <option value="">Select section</option>
+        <option>Main Entrance Greeter</option><option>Guiding Usher – Ladies Side</option>
+        <option>Guiding Usher – Mens Side</option><option>Assembling Chairs</option>
+        <option>Ushers Table</option><option>Assist Parking</option><option>General</option>
+      </select>
+    </div>
+    <div class="form-actions">
+      <button class="btn-gold" onclick="doCheckIn()"><i class="fas fa-sign-in-alt"></i> Check In</button>
+      <button class="btn-outline" onclick="closeModal('checkin-modal')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- USHER MODAL -->
+<div class="modal-overlay" id="usher-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="usher-modal-title"><i class="fas fa-user-plus"></i> Add Usher</div>
+      <button class="modal-close" onclick="closeModal('usher-modal')"><i class="fas fa-times"></i></button>
+    </div>
+    <input type="hidden" id="usher-edit-id">
+    <div class="form-grid">
+      <div class="field-group"><label class="field-label">First Name *</label><input type="text" id="u-fname" class="field-input" placeholder="First name"></div>
+      <div class="field-group"><label class="field-label">Last Name *</label><input type="text" id="u-lname" class="field-input" placeholder="Last name"></div>
+      <div class="field-group"><label class="field-label">Department *</label>
+        <select id="u-dept" class="field-select"><option value="">Select dept</option><option>AMM Ministries</option><option>Ladies Ministries</option><option>Youth Ministries</option><option>Children's Ministry</option></select>
+      </div>
+      <div class="field-group"><label class="field-label">Type</label>
+        <select id="u-type" class="field-select"><option>Usher</option><option>Usherette</option><option>Head Usher</option></select>
+      </div>
+      <div class="field-group"><label class="field-label">Phone Number</label><input type="tel" id="u-phone" class="field-input" placeholder="+639xx xxx xxxx"></div>
+      <div class="field-group"><label class="field-label">Status</label>
+        <select id="u-status" class="field-select"><option value="Active">Active</option><option value="Inactive">Inactive</option></select>
+      </div>
+      <div class="field-group span-2"><label class="field-label">Notes</label><textarea id="u-notes" class="field-textarea" style="min-height:60px" placeholder="Optional notes…"></textarea></div>
+    </div>
+    <div class="form-actions" style="margin-top:16px">
+      <button class="btn-gold" onclick="saveUsher()"><i class="fas fa-save"></i> Save</button>
+      <button class="btn-outline" onclick="closeModal('usher-modal')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- CONFIRM MODAL -->
+<div class="modal-overlay" id="confirm-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title"><i class="fas fa-exclamation-triangle"></i> Confirm Action</div>
+      <button class="modal-close" onclick="closeModal('confirm-modal')"><i class="fas fa-times"></i></button>
+    </div>
+    <p id="confirm-msg" style="font-size:14px;color:var(--muted);margin-bottom:20px"></p>
+    <div class="form-actions">
+      <button class="btn-danger" id="confirm-ok">Confirm</button>
+      <button class="btn-outline" onclick="closeModal('confirm-modal')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ✅ FIX: Firebase SDK loaded HERE (bottom of body) so DOM exists for any error display -->
+<!-- All three must load before the app script below. They are synchronous (no defer/async). -->
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
+<script>
+/* =====================================================
+   CALVARY TABERNACLE USHERING SYSTEM v5.0
+   ✅ Firebase Compat SDK — Fixed from ESM import errors
+   ===================================================== */
+
+
+// ── LOGO (embedded) ──
+const LOGO_SRC = 'data:image/png;base64,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';
+
+// ── FIREBASE CONFIG (calvary-ushering-app) ✅ VERIFIED COMPLETE ──
+const FIREBASE_CONFIG = {
+  apiKey:            'AIzaSyB_iqSZ_EIVUB0iebCTaos3-Lq4yT8cYFM',
+  authDomain:        'calvary-ushering-app.firebaseapp.com',
+  projectId:         'calvary-ushering-app',
+  storageBucket:     'calvary-ushering-app.firebasestorage.app',
+  messagingSenderId: '147497625715',
+  appId:             '1:147497625715:web:4a6da0f1a268b73787a206',
+  measurementId:     'G-HTMMLEWTY6'
+};
+
+
+
+// ── COLLECTIONS ──
+const C = {
+  ushers:'ushers', checkins:'checkins', visitors:'visitors',
+  baptisms:'baptisms', reports:'serviceReports',
+  users:'users', config:'config', audit:'auditLog'
+};
+
+// ── GLOBALS ──
+let db = null;
+let authInstance = null;
+let currentUser = null;
+let currentProfile = null;
+let _listeners = [];
+
+// ✅ Compatibility aliases for Firebase auth
+const getAuth = () => authInstance;
+const setAuth = (val) => { authInstance = val; };
+
+// ✅ FIXED — initFirebase: SDK guard, config validation, offline persistence
+function initFirebase() {
+  // ✅ Guard: Firebase SDK must be loaded from CDN before this runs
+  if (typeof firebase === 'undefined') {
+    console.error('[CTU v5] ❌ Firebase SDK not loaded — check internet connection or CSP headers.');
+    setSyncStatus('offline');
+    return;
+  }
+
+  try {
+    if (!firebase.apps.length) {
+      firebase.initializeApp(FIREBASE_CONFIG);
+    }
+    db   = firebase.firestore();
+    authInstance = firebase.auth();
+
+    // ➕ Firestore offline persistence — fails gracefully on multi-tab or unsupported browsers
+    db.enablePersistence({ synchronizeTabs: true }).catch(e => {
+      if (e.code !== 'failed-precondition' && e.code !== 'unimplemented') {
+        console.warn('[CTU DB] Persistence error:', e.code);
+      }
+    });
+
+    authInstance.onAuthStateChanged(onAuthChange);
+    setSyncStatus('syncing');
+    console.log('[CTU v5] ✅ Firebase initialized — project:', FIREBASE_CONFIG.projectId);
+
+  } catch(e) {
+    console.error('[CTU v5] ❌ Firebase init error:', e.name, '—', e.message);
+    setSyncStatus('offline');
+  }
+}
+
+// ✅ FIXED — onAuthChange: properly resets login button, handles profile, shows app
+function onAuthChange(user) {
+  currentUser = user;
+  if (user) {
+    console.log('[CTU Auth] 👤 Auth state: SIGNED IN —', user.email, '| UID:', user.uid);
+    loadProfile(user.uid).then(() => {
+      // ✅ FIXED — Reset login button state before showing app
+      const loginBtn = document.getElementById('login-btn');
+      if (loginBtn) { loginBtn.disabled = false; loginBtn.classList.remove('loading'); }
+      showApp();
+      startRealtime();
+    });
+  } else {
+    console.log('[CTU Auth] 🔒 Auth state: SIGNED OUT');
+    stopListeners();
+    showLogin();
+  }
+}
+
+// ✅ FIXED — loadProfile: first-user gets admin, graceful offline fallback, clear logging
+async function loadProfile(uid) {
+  try {
+    console.log('[CTU Auth] 🔍 Loading Firestore profile for UID:', uid);
+    const snap = await db.collection(C.users).doc(uid).get();
+
+    if (snap.exists) {
+      currentProfile = snap.data();
+      console.log('[CTU Auth] ✅ Profile loaded — role:', currentProfile.role, '| name:', currentProfile.displayName);
+
+      // ✅ ADDED — Refresh displayName from Firebase Auth if Firestore record is missing it
+      if (!currentProfile.displayName && currentUser.displayName) {
+        currentProfile.displayName = currentUser.displayName;
+        await db.collection(C.users).doc(uid).update({ displayName: currentUser.displayName });
+      }
+
+    } else {
+      // ➕ ADDED — Auto-create Firestore record for existing Firebase Auth user
+      console.log('[CTU Auth] ℹ️ No Firestore record found — creating one...');
+
+      // ➕ ADDED — First user ever in system becomes admin (prevents deadlock)
+      const allUsers = await db.collection(C.users).get();
+      const isFirstUser = allUsers.empty;
+      const role = isFirstUser ? 'admin' : 'usher';
+
+      console.log('[CTU Auth] 👑 Assigning role:', role, '| isFirstUser:', isFirstUser);
+
+      currentProfile = {
+        uid,
+        email: currentUser.email,
+        displayName: currentUser.displayName || currentUser.email.split('@')[0],
+        role,
+        active: true,
+        autoCreated: true,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      };
+
+      await db.collection(C.users).doc(uid).set(currentProfile);
+      console.log('[CTU Auth] ✅ Auto-created Firestore profile with role:', role);
+
+      if (isFirstUser) {
+        toast('Welcome! You are the first user — assigned as Admin.', 'success', 5000);
+      }
+    }
+
+    updateUserUI();
+    applyRoleAccess();
+
+  } catch(e) {
+    // ✅ FIXED — Graceful fallback for offline / permission errors
+    console.warn('[CTU Auth] ⚠️ Profile load error (offline or permission issue):', e.code, e.message);
+    currentProfile = {
+      uid: currentUser?.uid,
+      role: 'usher',
+      displayName: currentUser?.displayName || currentUser?.email?.split('@')[0] || 'User',
+      email: currentUser?.email,
+      active: true
+    };
+    updateUserUI();
+    applyRoleAccess();
+  }
+}
+
+// ✅ FIXED — updateUserUI: handles all roles with proper display
+function updateUserUI() {
+  const name     = currentProfile?.displayName || currentUser?.email?.split('@')[0] || 'User';
+  const role     = currentProfile?.role || 'usher';
+  const email    = currentProfile?.email || currentUser?.email || '';
+  const initials = name.trim().split(/\s+/).map(w => w[0]).slice(0, 2).join('').toUpperCase() || '?';
+
+  setEl('sb-avatar', initials);
+  setEl('sb-name', name);
+  setEl('sb-role', role.charAt(0).toUpperCase() + role.slice(1));
+
+  // ✅ FIXED — Also set title-bar user display if element exists
+  const titleRole = document.getElementById('topbar-role');
+  if (titleRole) titleRole.textContent = role;
+
+  console.log('[CTU UI] 🖥️ User UI updated — name:', name, '| role:', role, '| email:', email);
+}
+
+// ➕ ADDED — applyRoleAccess: show/hide UI elements based on role (non-destructive)
+function applyRoleAccess() {
+  const role = currentProfile?.role || 'usher';
+
+  // Admin-only elements (show for admin, hide for others)
+  document.querySelectorAll('.data-admin-only').forEach(el => {
+    el.style.display = role === 'admin' ? '' : 'none';
+  });
+
+  // ➕ ADDED — Ministry-specific elements
+  document.querySelectorAll('.data-ministry-only').forEach(el => {
+    el.style.display = (role === 'admin' || role === 'ministry') ? '' : 'none';
+  });
+
+  // ➕ ADDED — Role-aware navigation item visibility
+  const adminNavItems = document.querySelectorAll('.nav-admin-only');
+  adminNavItems.forEach(el => {
+    el.style.display = role === 'admin' ? '' : 'none';
+  });
+
+  console.log('[CTU UI] 🔐 Role access applied for role:', role);
+}
+// ================= LOGIN FUNCTION =================
+// ✅ FIXED — Proper error handling, no alert(), uses styled err-box, loading state
+async function doLogin() {
+  const emailInput  = document.getElementById('login-email');
+  const passInput   = document.getElementById('login-password');
+  const loginBtn    = document.getElementById('login-btn');
+  const errBox      = document.getElementById('login-err');
+  const errTxt      = document.getElementById('login-err-txt');
+
+  // ✅ FIXED — Trim inputs properly
+  const email = emailInput.value.trim();
+  const pass  = passInput.value; // do NOT trim password — spaces may be intentional
+
+  // ✅ FIXED — Hide previous error
+  errBox.classList.remove('show');
+
+  // ✅ FIXED — Validate before calling Firebase
+  if (!email || !pass) {
+    errTxt.textContent = 'Please enter your email and password.';
+    errBox.classList.add('show');
+    return;
+  }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    errTxt.textContent = 'Please enter a valid email address.';
+    errBox.classList.add('show');
+    return;
+  }
+  if (pass.length < 6) {
+    errTxt.textContent = 'Password must be at least 6 characters.';
+    errBox.classList.add('show');
+    return;
+  }
+
+  // ✅ FIXED — Loading state using existing CSS classes (no layout change)
+  loginBtn.disabled = true;
+  loginBtn.classList.add('loading');
+  console.log('[CTU Auth] Attempting login for:', email);
+
+  try {
+    // ✅ FIXED — Standard Firebase Auth sign-in (no auto-create on failure)
+    const cred = await authInstance.signInWithEmailAndPassword(email, pass);
+    console.log('[CTU Auth] ✅ Signed in:', cred.user.email, '| UID:', cred.user.uid);
+    // onAuthStateChanged will fire and handle redirect/app show
+
+  } catch (e) {
+    console.warn('[CTU Auth] ❌ Login error code:', e.code, '| message:', e.message);
+
+    // ✅ FIXED — Comprehensive, user-friendly error map (covers new Firebase SDK codes)
+    const errorMap = {
+      'auth/user-not-found':              'No account found with this email. Ask your admin to create your account.',
+      'auth/wrong-password':              'Incorrect password. Please check and try again.',
+      'auth/invalid-email':               'Invalid email address format.',
+      'auth/invalid-login-credentials':   'Incorrect email or password. Please check your credentials.',
+      'auth/invalid-credential':          'Incorrect email or password. Please check your credentials.',
+      'auth/user-disabled':               'This account has been disabled. Contact your administrator.',
+      'auth/too-many-requests':           'Too many failed attempts. Please wait a moment and try again.',
+      'auth/network-request-failed':      'Network error. Check your internet connection and try again.',
+      'auth/operation-not-allowed':       'Email/password login is not enabled. Contact the system admin.',
+      'auth/email-already-in-use':        'This email is already registered.',
+    };
+
+    const msg = errorMap[e.code] || `Login failed: ${e.message}`;
+    errTxt.textContent = msg;
+    errBox.classList.add('show');
+
+    // ✅ ADDED — Reset password field on auth errors so user can retype cleanly
+    if (['auth/wrong-password','auth/invalid-login-credentials','auth/invalid-credential'].includes(e.code)) {
+      passInput.value = '';
+      passInput.focus();
+    }
+
+    // ✅ FIXED — Reset button only on error; on success onAuthStateChanged handles UI
+    loginBtn.disabled = false;
+    loginBtn.classList.remove('loading');
+  }
+}
+
+
+function showReset() { openModal('reset-modal'); }
+// ✅ FIXED — doReset: better error handling, covers modern Firebase error codes
+async function doReset() {
+  const email = document.getElementById('reset-email').value.trim();
+  document.getElementById('reset-err').classList.remove('show');
+  document.getElementById('reset-succ').classList.remove('show');
+  if (!email) { showErr('reset-err','reset-err-txt','Enter your email address.'); return; }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { showErr('reset-err','reset-err-txt','Enter a valid email address.'); return; }
+  try {
+    await authInstance.sendPasswordResetEmail(email);
+    document.getElementById('reset-succ').classList.add('show');
+    console.log('[CTU Auth] 📧 Password reset email sent to:', email);
+  } catch(e) {
+    console.warn('[CTU Auth] Reset error:', e.code, e.message);
+    const msg = (e.code === 'auth/user-not-found' || e.code === 'auth/invalid-email')
+      ? 'No account found with this email address.'
+      : 'Failed to send reset email. Please try again.';
+    showErr('reset-err','reset-err-txt', msg);
+  }
+}
+
+// ✅ PRESERVED — createUser: secondary app pattern kept; ➕ ADDED better validation + logging
+async function createUser() {
+  const name  = document.getElementById('au-name').value.trim();
+  const email = document.getElementById('au-email').value.trim();
+  const pass  = document.getElementById('au-pass').value;
+  const role  = document.getElementById('au-role').value || 'usher';
+
+  // ➕ ADDED — Input validation with friendly messages
+  if (!name)  { toast('Display name is required.', 'error'); return; }
+  if (!email) { toast('Email address is required.', 'error'); return; }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { toast('Enter a valid email address.', 'error'); return; }
+  if (!pass || pass.length < 6) { toast('Password must be at least 6 characters.', 'error'); return; }
+
+  console.log('[CTU Admin] Creating user:', email, '| role:', role);
+
+  try {
+    // ✅ PRESERVED — Secondary app instance to avoid signing out current admin
+    const secAppName = 'sec_' + Date.now();
+    const sec = firebase.initializeApp(FIREBASE_CONFIG, secAppName);
+    const secAuth = sec.auth();
+
+    const cred = await secAuth.createUserWithEmailAndPassword(email, pass);
+    console.log('[CTU Admin] ✅ Firebase Auth account created, UID:', cred.user.uid);
+
+    // ➕ ADDED — Update display name in Firebase Auth profile
+    await cred.user.updateProfile({ displayName: name });
+
+    // ✅ PRESERVED — Write Firestore record in main db (uses current admin's db connection)
+    await db.collection(C.users).doc(cred.user.uid).set({
+      uid: cred.user.uid,
+      email,
+      displayName: name,
+      role,
+      active: true,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+      createdBy: currentUser?.uid || 'system'
+    });
+
+    // ✅ PRESERVED — Clean up secondary app session
+    await secAuth.signOut();
+    await sec.delete();
+
+    toast(`✓ Account created for ${name} (${role})`, 'success');
+    console.log('[CTU Admin] ✅ User record saved to Firestore for:', email);
+
+    // Clear form fields
+    ['au-name', 'au-email', 'au-pass'].forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; });
+    document.getElementById('au-role').value = 'usher';
+
+    loadAdminUsers();
+  } catch(e) {
+    console.error('[CTU Admin] ❌ createUser error:', e.code, e.message);
+
+    // ➕ ADDED — Friendly error messages for common create errors
+    const errMap = {
+      'auth/email-already-in-use': 'An account with this email already exists.',
+      'auth/invalid-email':        'Invalid email address format.',
+      'auth/weak-password':        'Password is too weak. Use at least 6 characters.',
+      'auth/operation-not-allowed':'Email/password accounts are not enabled in Firebase.',
+    };
+    toast(errMap[e.code] || (e.message || 'Failed to create user.'), 'error');
+  }
+}
+
+// ── REALTIME LISTENERS ──
+function startRealtime() {
+  stopListeners();
+  const today = todayStr();
+
+  _listeners.push(
+    db.collection(C.checkins).where('date','==',today).orderBy('timeIn','desc')
+      .onSnapshot(snap => {
+        window._checkins = snap.docs.map(d=>({id:d.id,...d.data()}));
+        renderCheckins(); renderDashCheckins(); refreshStats();
+      }, e => console.warn('CI snap:', e.message)),
+
+    db.collection(C.visitors).where('date','==',today)
+      .onSnapshot(snap => {
+        window._todayVisitors = snap.docs.map(d=>({id:d.id,...d.data()}));
+        renderDashVisitors(); refreshStats();
+      }, e => console.warn('V snap:', e.message)),
+
+    db.collection(C.visitors).orderBy('createdAt','desc').limit(200)
+      .onSnapshot(snap => {
+        window._visitors = snap.docs.map(d=>({id:d.id,...d.data()}));
+        renderVisitors();
+      }, e => console.warn('Vlist snap:', e.message)),
+
+    db.collection(C.baptisms).orderBy('createdAt','desc').limit(200)
+      .onSnapshot(snap => {
+        window._baptisms = snap.docs.map(d=>({id:d.id,...d.data()}));
+        renderBaptisms(); refreshStats();
+      }, e => console.warn('B snap:', e.message)),
+
+    db.collection(C.reports).orderBy('createdAt','desc').limit(100)
+      .onSnapshot(snap => {
+        window._reports = snap.docs.map(d=>({id:d.id,...d.data()}));
+        renderReports();
+      }, e => console.warn('R snap:', e.message)),
+
+    db.collection(C.ushers).orderBy('name')
+      .onSnapshot(snap => {
+        window._ushers = snap.docs.map(d=>({id:d.id,...d.data()}));
+        renderUshers(); populateUsherSelects(); refreshStats();
+      }, e => console.warn('U snap:', e.message))
+  );
+
+  setSyncStatus('synced');
+}
+
+// ✅ FIXED — doSignOut: clean logout with stop listeners + UI reset
+async function doSignOut() {
+  console.log('[CTU Auth] 🚪 Signing out...');
+  try {
+    stopListeners();
+    await authInstance.signOut();
+    // onAuthStateChanged → showLogin() is triggered automatically
+    toast('Signed out successfully.', 'info', 2000);
+    console.log('[CTU Auth] ✅ Signed out.');
+  } catch(e) {
+    console.error('[CTU Auth] Sign-out error:', e.message);
+    toast('Sign-out failed: ' + e.message, 'error');
+  }
+}
+
+// ── REALTIME LISTENERS CONTROL ──
+function stopListeners() {
+  _listeners.forEach(fn => { try { fn(); } catch(_){} });
+  _listeners = [];
+  console.log('[CTU DB] 🔇 Realtime listeners stopped.');
+}
+
+// ── STATS ──
+function refreshStats() {
+  const today = todayStr();
+  const ci = (window._checkins || []).filter(c=>c.date===today && c.status==='checked-in');
+  const v  = (window._todayVisitors || []);
+  const ft = v.filter(x=>x.firstTime==='yes');
+  const b  = (window._baptisms || []);
+  setEl('stat-ushers', ci.length);
+  setEl('stat-visitors', v.length);
+  setEl('stat-firsttime', ft.length);
+  setEl('stat-baptism', b.length);
+  setEl('dash-date', 'Today — ' + new Date().toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'}));
+}
+
+// ── CHECK-IN ──
+function renderDashCheckins() {
+  const data = (window._checkins || []).slice(0,8);
+  const tb = document.getElementById('dash-checkins-tbody');
+  if (!tb) return;
+  if (!data.length) { tb.innerHTML=`<tr><td colspan="4"><div class="empty-state"><i class="fas fa-inbox"></i><p>No check-ins yet</p></div></td></tr>`; return; }
+  tb.innerHTML = data.map(c=>`
+    <tr>
+      <td style="font-weight:700">${esc(c.usherName)}</td>
+      <td><span class="badge badge-blue">${esc(c.service||'—')}</span></td>
+      <td style="font-size:12px">${esc(c.section||'—')}</td>
+      <td>${c.status==='checked-in'?'<span class="badge badge-green">✓ In</span>':'<span class="badge badge-muted">Out</span>'}</td>
+    </tr>`).join('');
+}
+
+function renderCheckins() {
+  const q = (document.getElementById('ci-search')?.value||'').toLowerCase();
+  let data = (window._checkins||[]).filter(c=>!q||c.usherName?.toLowerCase().includes(q)||c.department?.toLowerCase().includes(q));
+  const tb = document.getElementById('ci-tbody');
+  if (!tb) return;
+  if (!data.length) { tb.innerHTML=`<tr><td colspan="8"><div class="empty-state"><i class="fas fa-inbox"></i><p>No check-ins today</p></div></td></tr>`; return; }
+  tb.innerHTML = data.map(c=>`
+    <tr>
+      <td style="font-weight:700">${esc(c.usherName)}</td>
+      <td>${esc(c.department||'—')}</td>
+      <td><span class="badge badge-blue">${esc(c.service||'—')}</span></td>
+      <td style="font-size:12px">${esc(c.section||'—')}</td>
+      <td style="font-family:'JetBrains Mono',monospace;font-size:12px">${esc(c.timeInDisplay||'—')}</td>
+      <td style="font-family:'JetBrains Mono',monospace;font-size:12px">${c.timeOutDisplay||'—'}</td>
+      <td>${c.status==='checked-in'?'<span class="badge badge-green">✓ Checked In</span>':'<span class="badge badge-muted">Checked Out</span>'}</td>
+      <td>${c.status==='checked-in'?`<button class="btn-outline btn-xs" onclick="doCheckOut('${c.id}')"><i class="fas fa-sign-out-alt"></i> Out</button>`:''}<button class="btn-danger btn-xs" style="margin-left:4px" onclick="delCheckin('${c.id}')"><i class="fas fa-trash"></i></button></td>
+    </tr>`).join('');
+}
+
+function populateUsherSelects() {
+  const ushers = (window._ushers||[]).filter(u=>u.status==='Active'||u.status==='active');
+  ['ci-usher','v-usher'].forEach(id=>{
+    const el = document.getElementById(id);
+    if (!el) return;
+    const prev = el.value;
+    el.innerHTML = `<option value="">— Select Usher —</option>` + ushers.map(u=>`<option value="${u.id}">${u.name} — ${u.department}</option>`).join('');
+    if (prev) el.value = prev;
+  });
+}
+
+async function doCheckIn() {
+  const usherId  = document.getElementById('ci-usher').value;
+  const service  = document.getElementById('ci-service').value;
+  const section  = document.getElementById('ci-section').value;
+  if (!usherId||!service||!section) { toast('Please fill all fields.','error'); return; }
+  const usher = (window._ushers||[]).find(u=>u.id===usherId);
+  if (!usher) { toast('Usher not found.','error'); return; }
+  const today = todayStr();
+  const alreadyIn = (window._checkins||[]).find(c=>c.usherId===usherId&&c.date===today&&c.status==='checked-in');
+  if (alreadyIn) { toast(`${usher.name} is already checked in.`,'warning'); return; }
+  const now = new Date();
+  try {
+    await db.collection(C.checkins).add({
+      usherId, usherName: usher.name, department: usher.department,
+      service, section, date: today,
+      timeIn: now.toISOString(), timeInDisplay: fmtTime(now),
+      timeOut: null, timeOutDisplay: null, status: 'checked-in',
+      durationMin: null, createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    toast(`${usher.name} checked in ✓`,'success');
+    closeModal('checkin-modal');
+  } catch(e) { toast(e.message,'error'); }
+}
+
+async function doCheckOut(sessionId) {
+  const now = new Date();
+  const session = (window._checkins||[]).find(c=>c.id===sessionId);
+  if (!session) { toast('Session not found.','error'); return; }
+  const durMin = Math.round((now-new Date(session.timeIn))/60000);
+  try {
+    await db.collection(C.checkins).doc(sessionId).update({
+      status:'checked-out', timeOut:now.toISOString(), timeOutDisplay:fmtTime(now), durationMin:durMin
+    });
+    toast('Checked out ✓','success');
+  } catch(e) { toast(e.message,'error'); }
+}
+
+async function delCheckin(id) {
+  confirm_action('Delete this check-in record?', async () => {
+    await db.collection(C.checkins).doc(id).delete();
+    toast('Deleted.','info');
+  });
+}
+
+async function bulkCheckOut() {
+  const active = (window._checkins||[]).filter(c=>c.status==='checked-in');
+  if (!active.length) { toast('No active check-ins.','info'); return; }
+  confirm_action(`Check out all ${active.length} active usher(s)?`, async () => {
+    const now = new Date();
+    const batch = db.batch();
+    active.forEach(c => {
+      const ref = db.collection(C.checkins).doc(c.id);
+      const durMin = Math.round((now-new Date(c.timeIn))/60000);
+      batch.update(ref, { status:'checked-out', timeOut:now.toISOString(), timeOutDisplay:fmtTime(now), durationMin:durMin });
+    });
+    await batch.commit();
+    toast(`Checked out ${active.length} ushers ✓`,'success');
+  });
+}
+
+// ── VISITORS ──
+function renderDashVisitors() {
+  const data = (window._todayVisitors||[]).slice(0,8);
+  const tb = document.getElementById('dash-visitors-tbody');
+  if (!tb) return;
+  if (!data.length) { tb.innerHTML=`<tr><td colspan="3"><div class="empty-state"><i class="fas fa-inbox"></i><p>No visitors yet</p></div></td></tr>`; return; }
+  tb.innerHTML = data.map(v=>`
+    <tr>
+      <td style="font-weight:700">${esc(v.name)}</td>
+      <td style="font-size:12px">${esc(v.serviceType||'—')}</td>
+      <td>${v.firstTime==='yes'?'<span class="badge badge-gold">First</span>':'<span class="badge badge-muted">Return</span>'}</td>
+    </tr>`).join('');
+}
+
+function renderVisitors() {
+  const q   = (document.getElementById('v-search')?.value||'').toLowerCase();
+  const ft  = document.getElementById('v-filter-first')?.value||'';
+  let data  = (window._visitors||[]);
+  if (q) data = data.filter(v=>v.name?.toLowerCase().includes(q)||v.contact?.toLowerCase().includes(q)||v.address?.toLowerCase().includes(q));
+  if (ft) data = data.filter(v=>v.firstTime===ft);
+  const tb = document.getElementById('v-tbody');
+  if (!tb) return;
+  if (!data.length) { tb.innerHTML=`<tr><td colspan="7"><div class="empty-state"><i class="fas fa-inbox"></i><p>No visitors found</p></div></td></tr>`; return; }
+  tb.innerHTML = data.map(v=>`
+    <tr>
+      <td style="font-size:12px;font-family:'JetBrains Mono',monospace">${esc(v.date)}</td>
+      <td style="font-weight:700">${esc(v.name)}</td>
+      <td style="font-size:12px">${esc(v.contact||v.contactNumber||'—')}</td>
+      <td style="font-size:12px">${esc(v.serviceType||'—')}</td>
+      <td style="font-size:12px">${esc(v.assignedDepartment||v.department||'—')}</td>
+      <td>${v.firstTime==='yes'?'<span class="badge badge-gold">First</span>':'<span class="badge badge-muted">Return</span>'}</td>
+      <td><button class="btn-danger btn-xs" onclick="delVisitor('${v.id}')"><i class="fas fa-trash"></i></button></td>
+    </tr>`).join('');
+}
+
+// ✅ PRESERVED — saveVisitor: all existing fields kept; ➕ ADDED department normalization
+async function saveVisitor() {
+  const name = document.getElementById('v-name').value.trim();
+  if (!name) { toast('Name is required.','error'); return; }
+  const interests = [...document.querySelectorAll('#v-form-panel input[type=checkbox]:checked')].map(cb=>cb.value);
+
+  // ➕ ADDED — Normalize department field so ministry dashboards can filter correctly
+  const assignedDept = val('v-dept') || '';
+  const deptNormalized = assignedDept.trim();
+
+  try {
+    await db.collection(C.visitors).add({
+      name,
+      contact: val('v-contact'),
+      email: val('v-email'),
+      address: val('v-address'),
+      gender: val('v-gender'),
+      civilStatus: val('v-civil'),
+      age: parseInt(val('v-age'))||null,
+      firstTime: val('v-firsttime')||'yes',
+      serviceType: val('v-service'),
+      // ➕ ADDED — Save both field names for backward compatibility
+      assignedDepartment: deptNormalized,
+      department: deptNormalized,
+      guestOf: val('v-guestof'),
+      assignedUsher: val('v-usher')||null,
+      interests,
+      prayerRequest: val('v-prayer'),
+      date: todayStr(),
+      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+      addedBy: currentUser?.uid || 'offline'
+    });
+    toast(`Visitor "${name}" saved ✓`,'success');
+    console.log('[CTU Visitors] ✅ Saved visitor:', name, '| dept:', deptNormalized);
+    clearVisitorForm();
+  } catch(e) {
+    console.error('[CTU Visitors] ❌ Save error:', e.message);
+    toast(e.message,'error');
+  }
+}
+
+function clearVisitorForm() {
+  ['v-name','v-contact','v-email','v-address','v-age','v-guestof','v-prayer'].forEach(id=>document.getElementById(id).value='');
+  ['v-gender','v-civil','v-service','v-dept','v-usher'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('v-firsttime').value='yes';
+  document.querySelectorAll('#v-form-panel input[type=checkbox]').forEach(cb=>cb.checked=false);
+}
+
+function openAddVisitor() { showView('visitors'); switchVTab('form', document.querySelector('#view-visitors .tab-btn')); }
+
+async function delVisitor(id) {
+  confirm_action('Delete this visitor record?', async ()=>{
+    await db.collection(C.visitors).doc(id).delete();
+    toast('Deleted.','info');
+  });
+}
+
+function exportVisitors() {
+  const list = window._visitors||[];
+  if (!list.length) { toast('No visitors to export.','error'); return; }
+  toCSV(['Date','Name','Contact','Address','Gender','Civil Status','Age','First Time?','Service','Dept','Guest Of','Prayer Request'],
+    list.map(v=>[v.date,v.name,v.contact||'',v.address||'',v.gender||'',v.civilStatus||'',v.age||'',v.firstTime||'',v.serviceType||'',v.assignedDepartment||'',v.guestOf||'',v.prayerRequest||'']),
+    `visitors-${todayStr()}.csv`);
+}
+
+// ── BAPTISM ──
+function renderBaptisms() {
+  const q  = (document.getElementById('b-search')?.value||'').toLowerCase();
+  const sf = document.getElementById('b-filter-status')?.value||'';
+  let data = (window._baptisms||[]);
+  if (q) data = data.filter(b=>b.name?.toLowerCase().includes(q)||b.contact?.toLowerCase().includes(q));
+  if (sf) data = data.filter(b=>b.status===sf);
+  const tb = document.getElementById('b-tbody');
+  if (!tb) return;
+  if (!data.length) { tb.innerHTML=`<tr><td colspan="7"><div class="empty-state"><i class="fas fa-inbox"></i><p>No baptism records</p></div></td></tr>`; return; }
+  const statusBadge = {baptized:'badge-green',pending:'badge-gold',rescheduled:'badge-blue'};
+  tb.innerHTML = data.map(b=>`
+    <tr>
+      <td style="font-size:12px;font-family:'JetBrains Mono',monospace">${esc(b.baptismDate||b.date||'—')}</td>
+      <td style="font-weight:700">${esc(b.name)}</td>
+      <td>${b.age||'—'}</td>
+      <td style="font-size:12px">${esc(b.contact||'—')}</td>
+      <td style="font-size:12px">${esc(b.minister||'—')}</td>
+      <td><span class="badge ${statusBadge[b.status]||'badge-muted'}">${esc(b.status||'pending')}</span></td>
+      <td>
+        <button class="btn-gold btn-xs" onclick="editBaptism('${b.id}')"><i class="fas fa-edit"></i></button>
+        <button class="btn-danger btn-xs" style="margin-left:4px" onclick="delBaptism('${b.id}')"><i class="fas fa-trash"></i></button>
+      </td>
+    </tr>`).join('');
+}
+
+async function saveBaptism() {
+  const name = document.getElementById('b-name').value.trim();
+  const baptismDate = document.getElementById('b-date').value;
+  if (!name) { toast('Name is required.','error'); return; }
+  const editId = window._editBaptismId;
+  const data = {
+    name, dob: val('b-dob'), age: parseInt(val('b-age'))||null,
+    gender: val('b-gender'), civilStatus: val('b-civil'),
+    contact: val('b-contact'), email: val('b-email'), address: val('b-address'),
+    baptismDate, service: val('b-service'), minister: val('b-minister'),
+    branch: val('b-branch'), previousReligion: val('b-prev'),
+    witness1: val('b-wit1'), witness2: val('b-wit2'),
+    department: val('b-dept'), status: val('b-status')||'pending',
+    notes: val('b-notes'), date: todayStr()
+  };
+  try {
+    if (editId) {
+      await db.collection(C.baptisms).doc(editId).update({ ...data, updatedAt: firebase.firestore.FieldValue.serverTimestamp(), updatedBy: currentUser?.uid });
+      toast(`Baptism record updated ✓`,'success');
+      window._editBaptismId = null;
+    } else {
+      data.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+      data.addedBy = currentUser?.uid||'offline';
+      await db.collection(C.baptisms).add(data);
+      toast(`Baptism record for "${name}" saved ✓`,'success');
+    }
+    clearBaptismForm();
+    switchBTab('list', document.querySelectorAll('#view-baptism .tab-btn')[1]);
+  } catch(e) { toast(e.message,'error'); }
+}
+
+function editBaptism(id) {
+  const b = (window._baptisms||[]).find(x=>x.id===id);
+  if (!b) return;
+  window._editBaptismId = id;
+  setVal('b-name',b.name); setVal('b-dob',b.dob); setVal('b-age',b.age);
+  setVal('b-gender',b.gender); setVal('b-civil',b.civilStatus);
+  setVal('b-contact',b.contact); setVal('b-email',b.email); setVal('b-address',b.address);
+  setVal('b-date',b.baptismDate); setVal('b-service',b.service); setVal('b-minister',b.minister);
+  setVal('b-branch',b.branch); setVal('b-prev',b.previousReligion);
+  setVal('b-wit1',b.witness1); setVal('b-wit2',b.witness2);
+  setVal('b-dept',b.department); setVal('b-status',b.status); setVal('b-notes',b.notes);
+  switchBTab('form', document.querySelector('#view-baptism .tab-btn'));
+  toast('Editing baptism record…','info');
+}
+
+function clearBaptismForm() {
+  ['b-name','b-dob','b-age','b-contact','b-email','b-address','b-date','b-minister','b-prev','b-wit1','b-wit2','b-notes'].forEach(id=>document.getElementById(id).value='');
+  ['b-gender','b-civil','b-service','b-dept'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('b-branch').value='Calvary Tabernacle';
+  document.getElementById('b-status').value='pending';
+  window._editBaptismId = null;
+}
+
+async function delBaptism(id) {
+  confirm_action('Delete this baptism record?', async ()=>{
+    await db.collection(C.baptisms).doc(id).delete();
+    toast('Deleted.','info');
+  });
+}
+
+function exportBaptism() {
+  const list = window._baptisms||[];
+  if (!list.length) { toast('No baptism records to export.','error'); return; }
+  toCSV(['Date','Name','Age','Gender','Civil Status','Contact','Address','Baptism Date','Minister','Branch','Prev Religion','Witness 1','Witness 2','Dept','Status','Notes'],
+    list.map(b=>[b.date,b.name,b.age||'',b.gender||'',b.civilStatus||'',b.contact||'',b.address||'',b.baptismDate||'',b.minister||'',b.branch||'',b.previousReligion||'',b.witness1||'',b.witness2||'',b.department||'',b.status||'',b.notes||'']),
+    `baptisms-${todayStr()}.csv`);
+}
+
+// ── SUNDAY REPORT ──
+function calcTotal() {
+  const m = parseInt(val('r-male'))||0;
+  const f = parseInt(val('r-female'))||0;
+  const y = parseInt(val('r-youth'))||0;
+  const ch = parseInt(val('r-children'))||0;
+  document.getElementById('r-total').value = m+f+y+ch;
+}
+
+function calcOffering() {
+  const t = (parseFloat(val('r-tithes'))||0)+(parseFloat(val('r-offerings'))||0)+(parseFloat(val('r-building'))||0);
+  document.getElementById('r-total-offering').value = t.toFixed(2);
+}
+
+function renderReports() {
+  const tb = document.getElementById('r-tbody');
+  if (!tb) return;
+  const data = window._reports||[];
+  if (!data.length) { tb.innerHTML=`<tr><td colspan="7"><div class="empty-state"><i class="fas fa-inbox"></i><p>No reports yet</p></div></td></tr>`; return; }
+  const statusBadge = {submitted:'badge-green',draft:'badge-muted',approved:'badge-gold'};
+  tb.innerHTML = data.map(r=>`
+    <tr>
+      <td style="font-size:12px;font-family:'JetBrains Mono',monospace">${esc(r.serviceDate||r.date||'—')}</td>
+      <td>${esc(r.serviceType||'—')}</td>
+      <td>${esc(r.speaker||'—')}</td>
+      <td style="font-family:'JetBrains Mono',monospace;font-weight:700">${r.totalAttendance||0}</td>
+      <td style="font-family:'JetBrains Mono',monospace">₱${Number(r.totalOffering||0).toLocaleString()}</td>
+      <td><span class="badge ${statusBadge[r.submitStatus]||'badge-muted'}">${esc(r.submitStatus||'draft')}</span></td>
+      <td>
+        <button class="btn-gold btn-xs" onclick="editReport('${r.id}')"><i class="fas fa-edit"></i></button>
+        <button class="btn-danger btn-xs" style="margin-left:4px" onclick="delReport('${r.id}')"><i class="fas fa-trash"></i></button>
+      </td>
+    </tr>`).join('');
+}
+
+async function saveReport() {
+  const serviceDate = val('r-date');
+  const serviceType = val('r-type');
+  if (!serviceDate||!serviceType) { toast('Service date and type are required.','error'); return; }
+  const editId = window._editReportId;
+  const data = {
+    serviceDate, serviceType, startTime:val('r-start'), endTime:val('r-end'),
+    speaker:val('r-speaker'), worshipLeader:val('r-worship'), sermonTitle:val('r-sermon'), scripture:val('r-scripture'),
+    maleAdults:parseInt(val('r-male'))||0, femaleAdults:parseInt(val('r-female'))||0,
+    youth:parseInt(val('r-youth'))||0, children:parseInt(val('r-children'))||0,
+    firstTimeVisitors:parseInt(val('r-firstvisitors'))||0, salvations:parseInt(val('r-salvations'))||0,
+    baptisms:parseInt(val('r-baptisms'))||0,
+    totalAttendance:parseInt(val('r-total'))||0,
+    tithes:parseFloat(val('r-tithes'))||0, offerings:parseFloat(val('r-offerings'))||0,
+    buildingFund:parseFloat(val('r-building'))||0, totalOffering:parseFloat(val('r-total-offering'))||0,
+    headUsher:val('r-head-usher'), numUshers:parseInt(val('r-num-ushers'))||0, usherList:val('r-usher-list'),
+    highlights:val('r-highlights'), challenges:val('r-challenges'), prayerRequests:val('r-prayer'),
+    submittedBy:val('r-submitted-by'), submitStatus:val('r-submit-status')||'draft',
+    date: todayStr()
+  };
+  try {
+    if (editId) {
+      await db.collection(C.reports).doc(editId).update({ ...data, updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
+      toast('Report updated ✓','success');
+      window._editReportId = null;
+    } else {
+      data.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+      data.addedBy = currentUser?.uid||'offline';
+      await db.collection(C.reports).add(data);
+      toast('Report saved ✓','success');
+    }
+    clearReportForm();
+    switchRTab('list', document.querySelectorAll('#view-report .tab-btn')[1]);
+  } catch(e) { toast(e.message,'error'); }
+}
+
+function editReport(id) {
+  const r = (window._reports||[]).find(x=>x.id===id);
+  if (!r) return;
+  window._editReportId = id;
+  setVal('r-date',r.serviceDate); setVal('r-type',r.serviceType);
+  setVal('r-start',r.startTime); setVal('r-end',r.endTime);
+  setVal('r-speaker',r.speaker); setVal('r-worship',r.worshipLeader);
+  setVal('r-sermon',r.sermonTitle); setVal('r-scripture',r.scripture);
+  setVal('r-male',r.maleAdults); setVal('r-female',r.femaleAdults);
+  setVal('r-youth',r.youth); setVal('r-children',r.children);
+  setVal('r-firstvisitors',r.firstTimeVisitors); setVal('r-salvations',r.salvations);
+  setVal('r-baptisms',r.baptisms); setVal('r-total',r.totalAttendance);
+  setVal('r-tithes',r.tithes); setVal('r-offerings',r.offerings);
+  setVal('r-building',r.buildingFund); setVal('r-total-offering',r.totalOffering);
+  setVal('r-head-usher',r.headUsher); setVal('r-num-ushers',r.numUshers);
+  setVal('r-usher-list',r.usherList); setVal('r-highlights',r.highlights);
+  setVal('r-challenges',r.challenges); setVal('r-prayer',r.prayerRequests);
+  setVal('r-submitted-by',r.submittedBy); setVal('r-submit-status',r.submitStatus);
+  switchRTab('form', document.querySelector('#view-report .tab-btn'));
+  toast('Editing report…','info');
+}
+
+function clearReportForm() {
+  ['r-date','r-start','r-end','r-speaker','r-worship','r-sermon','r-scripture','r-male','r-female','r-youth','r-children','r-firstvisitors','r-salvations','r-baptisms','r-total','r-tithes','r-offerings','r-building','r-total-offering','r-head-usher','r-num-ushers','r-usher-list','r-highlights','r-challenges','r-prayer','r-submitted-by'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('r-type').value='';
+  document.getElementById('r-submit-status').value='draft';
+  window._editReportId = null;
+}
+
+async function delReport(id) {
+  confirm_action('Delete this report?', async ()=>{
+    await db.collection(C.reports).doc(id).delete();
+    toast('Deleted.','info');
+  });
+}
+
+function printReport() {
+  const serviceDate = val('r-date') || todayStr();
+  const displayDate = serviceDate ? new Date(serviceDate+'T00:00:00').toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'}) : 'N/A';
+  const pw = window.open('','','width=900,height=700');
+  if (!pw) { toast('Allow pop-ups to print.','error'); return; }
+  pw.document.write(`<!DOCTYPE html><html><head><title>Service Report</title>
+  <style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Segoe UI,sans-serif;background:#f5f5f5;padding:20px}
+  .page{background:#fff;padding:30px;max-width:800px;margin:0 auto;border-radius:8px;box-shadow:0 2px 12px rgba(0,0,0,.1)}
+  .hdr{background:linear-gradient(135deg,#070d1b,#152035);color:#fff;padding:20px 24px;border-radius:8px;margin-bottom:20px;border-left:6px solid #c9922a;display:flex;align-items:center;gap:16px}
+  .hdr img{width:60px;height:60px;object-fit:contain}
+  h1{font-size:20px;font-weight:700}h2{font-size:13px;color:#e4b75c;letter-spacing:1px}
+  .section{margin-bottom:20px}.section h3{font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#0d1729;border-bottom:2px solid #c9922a;padding-bottom:6px;margin-bottom:12px}
+  .row{display:flex;margin-bottom:8px;font-size:13px}.row label{width:180px;color:#666;font-weight:600;flex-shrink:0}.row span{color:#1a1a1a;font-weight:700}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}.grid4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px}
+  .num-card{background:#f0f4f8;border-radius:6px;padding:10px;text-align:center}.num-card .n{font-size:22px;font-weight:800;color:#070d1b}.num-card .l{font-size:11px;color:#666;text-transform:uppercase;letter-spacing:1px}
+  .ftr{margin-top:20px;text-align:center;font-size:11px;color:#999;border-top:1px solid #ddd;padding-top:12px}
+  @media print{body{background:#fff}.page{box-shadow:none;padding:0}}</style>
+  </head><body><div class="page">
+  <div class="hdr"><img src="${LOGO_SRC}" alt="Logo"><div><h1>Calvary Tabernacle</h1><h2>United Pentecostal Church — Baguio City</h2><p style="font-size:11px;color:#aaa;margin-top:3px">Service Attendance Report</p></div></div>
+  <div class="section"><h3>Service Information</h3>
+    <div class="row"><label>Date:</label><span>${displayDate}</span></div>
+    <div class="row"><label>Service Type:</label><span>${esc(val('r-type'))}</span></div>
+    <div class="row"><label>Time:</label><span>${esc(val('r-start'))} – ${esc(val('r-end'))}</span></div>
+    <div class="row"><label>Speaker:</label><span>${esc(val('r-speaker'))}</span></div>
+    <div class="row"><label>Worship Leader:</label><span>${esc(val('r-worship'))}</span></div>
+    <div class="row"><label>Sermon:</label><span>${esc(val('r-sermon'))}</span></div>
+    <div class="row"><label>Scripture:</label><span>${esc(val('r-scripture'))}</span></div>
+  </div>
+  <div class="section"><h3>Attendance</h3>
+    <div class="grid4">
+      <div class="num-card"><div class="n">${val('r-male')||0}</div><div class="l">Male Adults</div></div>
+      <div class="num-card"><div class="n">${val('r-female')||0}</div><div class="l">Female Adults</div></div>
+      <div class="num-card"><div class="n">${val('r-youth')||0}</div><div class="l">Youth</div></div>
+      <div class="num-card"><div class="n">${val('r-children')||0}</div><div class="l">Children</div></div>
+      <div class="num-card"><div class="n">${val('r-firstvisitors')||0}</div><div class="l">First-Time Visitors</div></div>
+      <div class="num-card"><div class="n">${val('r-salvations')||0}</div><div class="l">Salvations</div></div>
+      <div class="num-card"><div class="n">${val('r-baptisms')||0}</div><div class="l">Baptisms</div></div>
+      <div class="num-card" style="background:linear-gradient(135deg,#070d1b,#152035);color:#fff"><div class="n" style="color:#e4b75c">${val('r-total')||0}</div><div class="l" style="color:#aaa">TOTAL</div></div>
+    </div>
+  </div>
+  <div class="section"><h3>Offering</h3>
+    <div class="row"><label>Tithes:</label><span>₱${Number(val('r-tithes')||0).toLocaleString()}</span></div>
+    <div class="row"><label>Offerings:</label><span>₱${Number(val('r-offerings')||0).toLocaleString()}</span></div>
+    <div class="row"><label>Building Fund:</label><span>₱${Number(val('r-building')||0).toLocaleString()}</span></div>
+    <div class="row"><label><strong>Total:</strong></label><span><strong>₱${Number(val('r-total-offering')||0).toLocaleString()}</strong></span></div>
+  </div>
+  <div class="section"><h3>Ushers on Duty</h3>
+    <div class="row"><label>Head Usher:</label><span>${esc(val('r-head-usher'))}</span></div>
+    <div class="row"><label>Number of Ushers:</label><span>${val('r-num-ushers')||0}</span></div>
+    <div class="row"><label>Duty List:</label><span>${esc(val('r-usher-list'))}</span></div>
+  </div>
+  ${val('r-highlights')?`<div class="section"><h3>Highlights</h3><p style="font-size:13px">${esc(val('r-highlights'))}</p></div>`:''}
+  ${val('r-challenges')?`<div class="section"><h3>Challenges / Concerns</h3><p style="font-size:13px">${esc(val('r-challenges'))}</p></div>`:''}
+  ${val('r-prayer')?`<div class="section"><h3>Prayer Requests</h3><p style="font-size:13px">${esc(val('r-prayer'))}</p></div>`:''}
+  <div class="ftr">Submitted by: ${esc(val('r-submitted-by'))} | Status: ${esc(val('r-submit-status'))} | Generated: ${new Date().toLocaleString()}<br>© Calvary Tabernacle Ushering System v5.0</div>
+  </div></body></html>`);
+  pw.document.close();
+  setTimeout(()=>pw.print(),400);
+}
+
+function exportReports() {
+  const list = window._reports||[];
+  if (!list.length) { toast('No reports to export.','error'); return; }
+  toCSV(['Date','Service Type','Speaker','Total Attendance','Tithes','Offerings','Building Fund','Total Offering','Salvations','Baptisms','Status'],
+    list.map(r=>[r.serviceDate||r.date,r.serviceType,r.speaker,r.totalAttendance,r.tithes,r.offerings,r.buildingFund,r.totalOffering,r.salvations,r.baptisms,r.submitStatus]),
+    `reports-${todayStr()}.csv`);
+}
+
+// ── USHERS ──
+function renderUshers() {
+  const q    = (document.getElementById('u-search')?.value||'').toLowerCase();
+  const dept = document.getElementById('u-filter-dept')?.value||'';
+  let data   = (window._ushers||[]);
+  if (q) data = data.filter(u=>u.name?.toLowerCase().includes(q)||u.department?.toLowerCase().includes(q)||u.phone?.includes(q));
+  if (dept) data = data.filter(u=>u.department===dept);
+  const ci = window._checkins||[];
+  const tb = document.getElementById('u-tbody');
+  if (!tb) return;
+  if (!data.length) { tb.innerHTML=`<tr><td colspan="8"><div class="empty-state"><i class="fas fa-inbox"></i><p>No ushers found</p></div></td></tr>`; return; }
+  tb.innerHTML = data.map(u=>{
+    const count = ci.filter(c=>c.usherId===u.id).length;
+    const active = ci.find(c=>c.usherId===u.id&&c.date===todayStr()&&c.status==='checked-in');
+    return `<tr>
+      <td style="font-family:'JetBrains Mono',monospace;font-size:12px">${esc(u.id)}</td>
+      <td style="font-weight:700">${esc(u.name)}</td>
+      <td style="font-size:12px">${esc(u.department)}</td>
+      <td><span class="badge badge-blue">${esc(u.type||'Usher')}</span></td>
+      <td style="font-size:12px">${esc(u.phone||'—')}</td>
+      <td>${active?'<span class="badge badge-green">Active</span>':'<span class="badge badge-muted">Off-duty</span>'}</td>
+      <td style="font-family:'JetBrains Mono',monospace">${count}</td>
+      <td>
+        <button class="btn-gold btn-xs" onclick="openEditUsher('${u.id}')"><i class="fas fa-edit"></i></button>
+        <button class="btn-danger btn-xs" style="margin-left:4px" onclick="delUsher('${u.id}')"><i class="fas fa-trash"></i></button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+async function saveUsher() {
+  const fn = document.getElementById('u-fname').value.trim();
+  const ln = document.getElementById('u-lname').value.trim();
+  const dept = val('u-dept');
+  if (!fn||!ln||!dept) { toast('First name, last name, and department are required.','error'); return; }
+  const editId = document.getElementById('usher-edit-id').value;
+  const data = {
+    firstName:fn, lastName:ln, name:`${fn} ${ln}`,
+    department:dept, type:val('u-type')||'Usher',
+    phone:val('u-phone'), status:val('u-status')||'Active', notes:val('u-notes')
+  };
+  try {
+    if (editId) {
+      await db.collection(C.ushers).doc(editId).update({ ...data, updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
+      toast('Usher updated ✓','success');
+    } else {
+      const id = 'USH'+String(Date.now()).slice(-6);
+      await db.collection(C.ushers).doc(id).set({ id, ...data, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+      toast(`Usher "${fn} ${ln}" added ✓`,'success');
+    }
+    closeModal('usher-modal');
+  } catch(e) { toast(e.message,'error'); }
+}
+
+function openEditUsher(id) {
+  const u = (window._ushers||[]).find(x=>x.id===id);
+  if (!u) return;
+  document.getElementById('usher-edit-id').value = id;
+  document.getElementById('usher-modal-title').innerHTML = '<i class="fas fa-edit"></i> Edit Usher';
+  setVal('u-fname',u.firstName); setVal('u-lname',u.lastName);
+  setVal('u-dept',u.department); setVal('u-type',u.type);
+  setVal('u-phone',u.phone); setVal('u-status',u.status); setVal('u-notes',u.notes);
+  openModal('usher-modal');
+}
+
+async function delUsher(id) {
+  confirm_action('Delete this usher? This cannot be undone.', async ()=>{
+    await db.collection(C.ushers).doc(id).delete();
+    toast('Usher deleted.','info');
+  });
+}
+
+function exportUshers() {
+  const list = window._ushers||[];
+  if (!list.length) { toast('No ushers to export.','error'); return; }
+  const ci = window._checkins||[];
+  toCSV(['ID','Name','Dept','Type','Phone','Status','Total Check-ins'],
+    list.map(u=>[u.id,u.name,u.department,u.type,u.phone,u.status,ci.filter(c=>c.usherId===u.id).length]),
+    `ushers-${todayStr()}.csv`);
+}
+
+// ── ADMIN ──
+async function loadAdminUsers() {
+  if (!db) return;
+  try {
+    const snap = await db.collection(C.users).orderBy('createdAt').get();
+    const users = snap.docs.map(d=>d.data());
+    const tb = document.getElementById('admin-users-tbody');
+    if (!tb) return;
+    if (!users.length) { tb.innerHTML=`<tr><td colspan="4" class="empty-state"><p>No users found</p></td></tr>`; return; }
+    tb.innerHTML = users.map(u=>`<tr>
+      <td style="font-weight:700">${esc(u.displayName||'—')}</td>
+      <td style="font-size:12px">${esc(u.email||'—')}</td>
+      <td><span class="badge ${u.role==='admin'?'badge-gold':'badge-blue'}">${esc(u.role)}</span></td>
+      <td><button class="btn-danger btn-xs" onclick="removeUser('${u.uid}')"><i class="fas fa-user-minus"></i></button></td>
+    </tr>`).join('');
+  } catch(e) { console.warn('loadAdminUsers:', e); }
+}
+
+async function removeUser(uid) {
+  confirm_action('Remove this user from Firestore? (Auth account remains)', async ()=>{
+    await db.collection(C.users).doc(uid).delete();
+    toast('User removed.','info');
+    loadAdminUsers();
+  });
+}
+
+async function saveConfig() {
+  const cfg = {
+    churchName: val('cfg-church'), branchName: val('cfg-branch'), address: val('cfg-address'),
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+  };
+  try {
+    await db.collection(C.config).doc('main').set(cfg, { merge: true });
+    toast('Settings saved ✓','success');
+  } catch(e) { toast(e.message,'error'); }
+}
+
+function confirmClear() {
+  confirm_action('This will delete all demo/test data. Real production data will NOT be affected (only records with demo flag). Continue?', ()=>{
+    toast('Feature coming soon — export your data first.','info');
+  });
+}
+
+function exportAll() {
+  exportVisitors();
+  setTimeout(()=>exportUshers(),600);
+  setTimeout(()=>exportReports(),1200);
+  setTimeout(()=>exportBaptism(),1800);
+}
+
+// ── NAVIGATION ──
+const VIEWS = { dashboard:'Dashboard', checkin:'Check-in / Out', visitors:'Visitor Records', baptism:'Baptism Records', report:'Sunday Report', ushers:'Usher Management', admin:'Admin Panel' };
+const SUBS  = { dashboard:'Overview & Live Stats', checkin:'Today\'s attendance log', visitors:'Manage & log visitors', baptism:'Track baptism candidates', report:'Submit service reports', ushers:'Register & manage ushers', admin:'System management' };
+
+function showView(id) {
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
+  document.getElementById('view-'+id)?.classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(b=>{ if(b.getAttribute('onclick')?.includes(`'${id}'`)) b.classList.add('active'); });
+  setEl('page-title', VIEWS[id]||id);
+  setEl('page-sub', SUBS[id]||'');
+  if (id==='admin') loadAdminUsers();
+  closeSidebar();
+}
+
+// ✅ FIXED — showApp: proper display, role-based default view, app shell setup
+function showApp() {
+  document.getElementById('login-screen').classList.add('hidden');
+  document.getElementById('login-screen').style.display = 'none';
+  const app = document.getElementById('app');
+  app.style.display = 'flex';
+  app.classList.add('visible');
+
+  // ➕ ADDED — Role-based default landing view
+  const role = currentProfile?.role || 'usher';
+  if (role === 'admin') {
+    showView('dashboard');
+  } else if (role === 'ministry') {
+    showView('visitors');
+  } else {
+    showView('dashboard');
+  }
+  console.log('[CTU UI] ✅ App shown for role:', role);
+}
+
+// ✅ FIXED — showLogin: clears form, resets button, hides error box
+function showLogin() {
+  document.getElementById('login-screen').classList.remove('hidden');
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('app').classList.remove('visible');
+  document.getElementById('app').style.display = 'none';
+
+  // ✅ FIXED — Reset login form state on logout
+  const errBox  = document.getElementById('login-err');
+  const loginBtn = document.getElementById('login-btn');
+  if (errBox)   errBox.classList.remove('show');
+  if (loginBtn) { loginBtn.disabled = false; loginBtn.classList.remove('loading'); }
+
+  console.log('[CTU UI] 🔒 Login screen shown');
+}
+
+// ── TAB SWITCHERS ──
+function switchVTab(id, btn) {
+  const isForm = id==='form';
+  document.getElementById('v-form-panel').style.display = isForm?'':'none';
+  document.getElementById('v-list-panel').style.display = isForm?'none':'';
+  document.querySelectorAll('#view-visitors .tab-btn').forEach(b=>b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+}
+
+function switchBTab(id, btn) {
+  const isForm = id==='form';
+  document.getElementById('b-form-panel').style.display = isForm?'':'none';
+  document.getElementById('b-list-panel').style.display = isForm?'none':'';
+  document.querySelectorAll('#view-baptism .tab-btn').forEach(b=>b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+}
+
+function switchRTab(id, btn) {
+  const isForm = id==='form';
+  document.getElementById('r-form-panel').style.display = isForm?'':'none';
+  document.getElementById('r-list-panel').style.display = isForm?'none':'';
+  document.querySelectorAll('#view-report .tab-btn').forEach(b=>b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+}
+
+// ── SIDEBAR ──
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('sb-overlay').classList.toggle('show');
+}
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sb-overlay').classList.remove('show');
+}
+
+// ── MODALS ──
+function openModal(id) {
+  document.getElementById(id).classList.add('open');
+  if (id==='usher-modal') {
+    document.getElementById('usher-edit-id').value='';
+    document.getElementById('usher-modal-title').innerHTML='<i class="fas fa-user-plus"></i> Add Usher';
+    ['u-fname','u-lname','u-phone','u-notes'].forEach(i=>document.getElementById(i).value='');
+    ['u-dept','u-type','u-status'].forEach(i=>document.getElementById(i).value='');
+  }
+}
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+function confirm_action(msg, cb) {
+  document.getElementById('confirm-msg').textContent = msg;
+  document.getElementById('confirm-ok').onclick = ()=>{ closeModal('confirm-modal'); cb(); };
+  openModal('confirm-modal');
+}
+
+// ── SYNC STATUS ──
+function setSyncStatus(state) {
+  const pill = document.getElementById('sync-pill');
+  const txt  = document.getElementById('sync-text');
+  if (!pill) return;
+  pill.className = 'sync-pill ' + state;
+  const map = {synced:'Synced',syncing:'Syncing…',offline:'Offline'};
+  if (txt) txt.textContent = map[state]||state;
+}
+
+// ── DASHBOARD REFRESH ──
+function refreshDashboard() {
+  refreshStats(); renderDashCheckins(); renderDashVisitors();
+  toast('Dashboard refreshed ✓','success');
+}
+
+// ── CLOCK ──
+function startClock() {
+  const el = document.getElementById('clock');
+  setInterval(()=>{ if(el) el.textContent = new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:true}); },1000);
+}
+
+// ── UTILS ──
+function val(id) { const el=document.getElementById(id); return el?el.value:''; }
+function setVal(id,v) { const el=document.getElementById(id); if(el) el.value=v||''; }
+function setEl(id,v) { const el=document.getElementById(id); if(el) el.textContent=v; }
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function todayStr() { return new Date().toISOString().split('T')[0]; }
+function fmtTime(d) { return d.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',hour12:true}); }
+
+function togglePw(inputId, btn) {
+  const inp = document.getElementById(inputId);
+  inp.type = inp.type==='password' ? 'text' : 'password';
+  btn.querySelector('i').className = inp.type==='password' ? 'fas fa-eye' : 'fas fa-eye-slash';
+}
+
+function toast(msg, type='info', dur=3500) {
+  const icons={success:'✓',error:'✕',info:'ℹ',warning:'⚠'};
+  const c = document.getElementById('toast-container');
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.innerHTML = `<span>${icons[type]||icons.info}</span>${esc(msg)}`;
+  c.appendChild(t);
+  const dismiss = ()=>{ t.style.animation='none'; t.style.opacity='0'; t.style.transform='translateX(40px)'; setTimeout(()=>t.remove(),300); };
+  t.addEventListener('click',dismiss);
+  setTimeout(dismiss, Math.max(dur,1500));
+}
+
+function showErr(boxId, txtId, msg) {
+  document.getElementById(txtId).textContent = msg;
+  document.getElementById(boxId).classList.add('show');
+}
+
+function toCSV(headers, rows, filename) {
+  const csv = [headers,...rows].map(r=>r.map(c=>`"${String(c||'').replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob = new Blob([csv],{type:'text/csv;charset=utf-8;'});
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href=url; a.download=filename||'export.csv'; a.click();
+  URL.revokeObjectURL(url);
+  toast('Export downloaded ✓','success');
+}
+
+// ── ENTER KEY SUPPORT ──
+document.addEventListener('keydown', e=>{
+  if (e.key==='Enter' && document.getElementById('login-screen').style.display!=='none' && !document.getElementById('login-screen').classList.contains('hidden')) {
+    doLogin();
+  }
+});
+
+// ── LOGO INJECT ──
+function injectLogos() {
+  document.querySelectorAll('#login-logo,#app-logo').forEach(img=>img.src=LOGO_SRC);
+}
+
+// ── INIT ──
+window.addEventListener('DOMContentLoaded', ()=>{
+  injectLogos();
+  startClock();
+
+  // ✅ PRESERVED — Default dates
+  const today = todayStr();
+  ['b-date','r-date'].forEach(id=>{ const el=document.getElementById(id); if(el&&!el.value) el.value=today; });
+
+  // ✅ PRESERVED — Enter key submits login from password field
+  document.getElementById('login-password').addEventListener('keydown', e=>{ if(e.key==='Enter') doLogin(); });
+
+  // ➕ ADDED — Clear login error box when user starts typing
+  ['login-email','login-password'].forEach(id=>{
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('input', ()=>{
+      document.getElementById('login-err')?.classList.remove('show');
+    });
+  });
+
+  // ✅ PRESERVED — Escape key closes modals
+  document.addEventListener('keydown', e=>{
+    if (e.key==='Escape') document.querySelectorAll('.modal-overlay.open').forEach(m=>m.classList.remove('open'));
+  });
+
+  // ✅ PRESERVED — Boot Firebase
+  initFirebase();
+
+  console.log('[CTU v5] ✅ DOM ready — Calvary Tabernacle Ushering System v5.0');
+});
+
+/* =====================================================
+   ➕ FIRESTORE STRUCTURE REFERENCE
+   =====================================================
+   Collection: users/{uid}
+     uid, email, displayName, role (admin|usher|ministry),
+     active, createdAt, createdBy, autoCreated?
+
+   Collection: visitors/{auto-id}
+     name, contact, email, address, gender, civilStatus,
+     age, firstTime (yes|no), serviceType, department,
+     assignedDepartment, guestOf, assignedUsher,
+     interests[], prayerRequest, date (YYYY-MM-DD),
+     createdAt, addedBy
+
+   Collection: ushers/{USH######}
+     id, firstName, lastName, name, department, type,
+     phone, status (Active|Inactive), notes, createdAt
+
+   Collection: checkins/{auto-id}
+     usherId, usherName, department, service, section,
+     date (YYYY-MM-DD), timeIn, timeInDisplay,
+     timeOut, timeOutDisplay, status (checked-in|checked-out),
+     durationMin, createdAt
+
+   Collection: baptisms/{auto-id}
+     name, dob, age, gender, civilStatus, contact, email,
+     address, baptismDate, service, minister, branch,
+     previousReligion, witness1, witness2, department,
+     status (pending|baptized|rescheduled), notes,
+     date, createdAt, addedBy
+
+   Collection: serviceReports/{auto-id}
+     serviceDate, serviceType, startTime, endTime,
+     speaker, worshipLeader, sermonTitle, scripture,
+     maleAdults, femaleAdults, youth, children,
+     firstTimeVisitors, salvations, baptisms,
+     totalAttendance, tithes, offerings, buildingFund,
+     totalOffering, headUsher, numUshers, usherList,
+     highlights, challenges, prayerRequests,
+     submittedBy, submitStatus (draft|submitted|approved),
+     date, createdAt, addedBy
+
+   Collection: config/main
+     churchName, branchName, address, updatedAt
+
+   ===================================================== */
+</script>
+</body>
+</html>
